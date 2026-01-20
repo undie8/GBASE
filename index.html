@@ -68,18 +68,22 @@
     </section>
 
     <nav class="grid grid-cols-2 gap-4">
-        <a href="money.html" class="app-card p-6 shadow-lg border-orange-500/30 border">
+        
+        <a href="money.html" class="app-card p-6 shadow-lg border border-gray-700/50 hover:border-gray-500 transition">
             <div class="w-14 h-14 bg-orange-500/10 rounded-2xl flex items-center justify-center mb-3"><span class="text-3xl">💰</span></div>
             <span class="text-sm font-semibold text-white">Money<br>Manager Pro</span>
         </a>
+
         <div class="app-card p-6 opacity-40 grayscale">
             <div class="w-14 h-14 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-3"><span class="text-3xl">📝</span></div>
             <span class="text-sm font-semibold text-white">Daily<br>Notes</span>
         </div>
+        
         <div class="app-card p-6 opacity-40 grayscale">
             <div class="w-14 h-14 bg-green-500/10 rounded-2xl flex items-center justify-center mb-3"><span class="text-3xl">📅</span></div>
             <span class="text-sm font-semibold text-white">Tasks<br>Planner</span>
         </div>
+
         <a href="settings.html" class="app-card p-6 shadow-lg border border-gray-700/50 hover:border-gray-500 transition">
             <div class="w-14 h-14 bg-gray-500/10 rounded-2xl flex items-center justify-center mb-3"><span class="text-3xl">⚙️</span></div>
             <span class="text-sm font-semibold text-white">System<br>Settings</span>
@@ -95,11 +99,9 @@
     <script>
         let pinBuffer = "";
         
-        // ฟังก์ชันโหลดข้อมูล User จากเครื่องมาแสดง (ใช้ใน 2 จุด: ตอนโหลดหน้าเว็บ และ ตอนกดรหัสผ่านถูก)
         function loadUserData() {
             const localName = localStorage.getItem('gbase_username');
             const localSub = localStorage.getItem('gbase_subtitle');
-            
             if (localName) document.getElementById('home-username').innerText = localName;
             if (localSub) document.getElementById('home-subtitle').innerText = localSub;
         }
@@ -131,10 +133,7 @@
             const storedPin = localStorage.getItem('gbase_pin') || '8896';
             if (pinBuffer === storedPin) {
                 sessionStorage.setItem('gbase_unlocked', 'true');
-                
-                // *** เรียกใช้ฟังก์ชันเปลี่ยนชื่อ ก่อนปิดหน้าจอล็อก ***
                 loadUserData();
-
                 const overlay = document.getElementById('pin-overlay');
                 overlay.style.opacity = '0';
                 setTimeout(() => { overlay.style.display = 'none'; }, 300);
@@ -153,11 +152,9 @@
             location.reload();
         }
 
-        // รองรับการพิมพ์ด้วยคีย์บอร์ด
         document.addEventListener('keydown', (e) => {
             const overlay = document.getElementById('pin-overlay');
             if (!overlay || overlay.style.display === 'none') return;
-
             if (e.key >= '0' && e.key <= '9') {
                 addPin(e.key);
             }
@@ -167,20 +164,17 @@
         });
 
         window.onload = async function() {
-            // เช็ค Session ถ้าเคยล็อกอินแล้ว ให้โหลดชื่อและเปิดเลย
             if (sessionStorage.getItem('gbase_unlocked') === 'true') {
                 loadUserData(); 
                 document.getElementById('pin-overlay').style.display = 'none';
             }
 
-            // แอบโหลดข้อมูลล่าสุดจาก Server มาอัปเดต LocalStorage
             try {
                 if (typeof CONFIG === 'undefined' || !CONFIG.SCRIPT_URL) return;
                 const res = await fetch(CONFIG.SCRIPT_URL + '?get=settings');
                 const data = await res.json();
                 
                 if (data.username) {
-                    // ถ้ายังอยู่ที่หน้าจอหลัก ให้อัปเดตชื่อทันทีด้วย
                     if (sessionStorage.getItem('gbase_unlocked') === 'true') {
                          document.getElementById('home-username').innerText = data.username;
                     }
