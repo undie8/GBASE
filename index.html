@@ -52,5 +52,20 @@
         </div>
     </nav>
     <footer class="mt-16 text-center"><p class="text-[9px] text-gray-600 uppercase tracking-widest">© 2026 GBASE PERSONAL OS</p></footer>
+    <script src="config.js"></script> <script>
+        // เมื่อโหลดหน้าเว็บเสร็จ ให้เอา URL จาก config.js ไปใส่ในปุ่มต่างๆ
+        window.onload = function() {
+            // ดึงค่า URL มาจาก CONFIG.SCRIPT_URL
+            const myUrl = CONFIG.SCRIPT_URL;
+            
+            // (ถ้าปุ่มคุณลิงก์ไปหน้า money.html อยู่แล้ว ไม่ต้องทำอะไรตรงนี้)
+            // แต่ถ้าคุณมีปุ่มที่ลิงก์ไป GAS โดยตรง ให้ตั้ง id ให้ปุ่มนั้น แล้วใช้คำสั่งนี้:
+            // document.getElementById('myButtonId').href = myUrl;
+            
+            console.log("Loaded Configuration URL:", myUrl);
+        }
+    </script>
+</body>
+</html>
 </body>
 </html>
