@@ -96,7 +96,7 @@
     <script src="config.js"></script>
     <script>
         let pinBuffer = "";
-        const correctPin = localStorage.getItem('gbase_pin') || '8896'; // รหัสเริ่มต้น 8896 ถ้ายังไม่ได้ตั้ง
+        const correctPin = localStorage.getItem('gbase_pin') || '8896';
 
         function addPin(num) {
             if (pinBuffer.length < 4) {
@@ -124,12 +124,14 @@
         function checkPin() {
             const storedPin = localStorage.getItem('gbase_pin') || '8896';
             if (pinBuffer === storedPin) {
-                // Unlock Success
+                // บันทึก Session ว่าล็อกอินแล้ว
+                sessionStorage.setItem('gbase_unlocked', 'true');
+                
+                // ปลดล็อกหน้าจอ
                 const overlay = document.getElementById('pin-overlay');
                 overlay.style.opacity = '0';
                 setTimeout(() => { overlay.style.display = 'none'; }, 300);
             } else {
-                // Unlock Failed
                 const dots = document.getElementById('pin-dots');
                 dots.classList.add('shake');
                 setTimeout(() => {
@@ -140,16 +142,25 @@
         }
 
         function logout() {
+            sessionStorage.removeItem('gbase_unlocked');
             location.reload();
         }
 
         window.onload = async function() {
-            // โหลดข้อมูล User/Settings
+            // เช็คว่าเคยล็อกอินหรือยัง
+            if (sessionStorage.getItem('gbase_unlocked') === 'true') {
+                document.getElementById('pin-overlay').style.display = 'none';
+            }
+
+            // 1. ดึงข้อมูลจากเครื่องมาโชว์ทันที (เพื่อให้เร็ว)
             const localName = localStorage.getItem('gbase_username');
             const localSub = localStorage.getItem('gbase_subtitle');
+            
+            // ใส่ข้อมูลลงใน ID ที่เราเตรียมไว้ (ถ้าไม่มี ID โค้ดจะ error ตรงนี้)
             if (localName) document.getElementById('home-username').innerText = localName;
             if (localSub) document.getElementById('home-subtitle').innerText = localSub;
 
+            // 2. ดึงข้อมูลล่าสุดจาก Google Sheets (Settings)
             try {
                 if (typeof CONFIG === 'undefined' || !CONFIG.SCRIPT_URL) return;
                 const res = await fetch(CONFIG.SCRIPT_URL + '?get=settings');
@@ -163,48 +174,12 @@
                     document.getElementById('home-subtitle').innerText = data.subtitle;
                     localStorage.setItem('gbase_subtitle', data.subtitle);
                 }
-                // *** สำคัญ: อัปเดตรหัสผ่านลงเครื่อง เพื่อให้ล็อกอินได้แม้เน็ตหลุด ***
                 if (data.pin) {
                     localStorage.setItem('gbase_pin', data.pin);
                 }
             } catch (e) {
-                console.log("Offline mode");
+                console.log("Offline mode or API error");
             }
-        }
-        // ... (ส่วนบนของ script เหมือนเดิม) ...
-
-        function checkPin() {
-            const storedPin = localStorage.getItem('gbase_pin') || '8896';
-            if (pinBuffer === storedPin) {
-                // [เพิ่มบรรทัดนี้] : บันทึกว่าล็อกอินผ่านแล้ว (แจกบัตรผ่าน)
-                sessionStorage.setItem('gbase_unlocked', 'true');
-
-                // Unlock Success
-                const overlay = document.getElementById('pin-overlay');
-                overlay.style.opacity = '0';
-                setTimeout(() => { overlay.style.display = 'none'; }, 300);
-            } else {
-                // ... (ส่วนรหัสผิดเหมือนเดิม) ...
-                const dots = document.getElementById('pin-dots');
-                dots.classList.add('shake');
-                setTimeout(() => {
-                    dots.classList.remove('shake');
-                    clearPin();
-                }, 300);
-            }
-        }
-
-        // ... (ฟังก์ชัน logout และอื่นๆ) ...
-
-        window.onload = async function() {
-            // [เพิ่มส่วนนี้ไว้บนสุดของ onload] : ถ้ามีบัตรผ่านอยู่แล้ว ไม่ต้องถามรหัสซ้ำ (เช่น กด Refresh)
-            if (sessionStorage.getItem('gbase_unlocked') === 'true') {
-                document.getElementById('pin-overlay').style.display = 'none';
-            }
-
-            // ... (โค้ดโหลดชื่อและ Config เดิมของคุณ) ...
-            const localName = localStorage.getItem('gbase_username');
-            // ...
         }
     </script>
 </body>
