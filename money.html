@@ -328,7 +328,7 @@
             showLoader(true);
             try { await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({ action:'addIncome', month: fullDate, type, amount: val }) }); document.getElementById('incVal').value = ""; document.getElementById('incDay').value = ""; fetchData(); } catch (e) { showLoader(false); }
         }
-       function renderDebtList(month) {
+      function renderDebtList(month) {
             try {
                 // กรองเฉพาะรายการของเดือนบิลที่เลือก
                 const list = (globalData.transactions || []).filter(t => t.month === month);
@@ -342,34 +342,48 @@
                 const unpaidList = list.filter(t => !isPaidCheck(t));
                 const paidList = list.filter(t => isPaidCheck(t));
                 
-                // เรียงลำดับตามวันที่ (DueDate)
-                unpaidList.sort((a, b) => { 
-                    const da = parseInt(safeStr(a.dueDate).replace(/\D/g,'')||99); 
-                    const db = parseInt(safeStr(b.dueDate).replace(/\D/g,'')||99); 
-                    return da - db; 
+                // *** แก้ไขการเรียงลำดับ (Sorting) ใหม่ ***
+                // ให้เรียงตาม "ปี-เดือน-วัน" (YYYY-MM-DD) เพื่อให้เดือนปัจจุบันขึ้นก่อนเดือนหน้าเสมอ
+                unpaidList.sort((a, b) => {
+                    // ฟังก์ชันช่วยสร้างค่า "YYYY-MM-DD" สำหรับเปรียบเทียบ
+                    const getFullDateVal = (item) => {
+                        // ใช้ payMonth (เดือนจ่าย) เป็นหลัก ถ้าไม่มีใช้ month (เดือนบิล)
+                        // ผลลัพธ์จะเป็น "2026-01" หรือ "2026-02"
+                        const ym = item.payMonth || item.month || "9999-12";
+                        
+                        // ดึงเลขวัน (ตัดตัวอักษรออก) แล้วเติม 0 ข้างหน้าให้ครบ 2 หลัก (เช่น "5" -> "05")
+                        const d = safeStr(item.dueDate).replace(/\D/g, '').padStart(2, '0') || "99";
+                        
+                        // คืนค่าเป็น "2026-02-05" เพื่อใช้เรียงลำดับ
+                        return ym + "-" + d;
+                    };
+
+                    const dateA = getFullDateVal(a);
+                    const dateB = getFullDateVal(b);
+                    
+                    // เปรียบเทียบ String (น้อยไปมาก)
+                    return dateA.localeCompare(dateB);
                 });
                 
                 document.getElementById('debtList').innerHTML = [...unpaidList, ...paidList].map(t => {
                     const total = safeNum(t.total); 
                     let paid = safeNum(t.paid); 
-                    const minPay = safeNum(t.minPay); // ดึงยอดขั้นต่ำ
+                    const minPay = safeNum(t.minPay);
                     const isPaid = (paid >= parseFloat(total.toFixed(2)));
                     
-                    // --- ส่วนจัดการวันที่กำหนดจ่าย (Day + Month Name) ---
-                    let dayNum = safeStr(t.dueDate).replace(/[^0-9]/g, ''); // ดึงเฉพาะเลขวัน
-                    if (dayNum.length === 1) dayNum = "0" + dayNum; // เติม 0 ข้างหน้าถ้ามีหลักเดียว
+                    // ส่วนแสดงผลวันที่
+                    let dayNum = safeStr(t.dueDate).replace(/[^0-9]/g, '');
+                    if (dayNum.length === 1) dayNum = "0" + dayNum;
                     
-                    // หาชื่อเดือนที่จะจ่าย (ใช้ payMonth เป็นหลัก ถ้าไม่มีใช้ month)
                     let targetMonthStr = t.payMonth || t.month; 
                     let monthName = "";
                     if (targetMonthStr && targetMonthStr.includes('-')) {
-                        const mPart = parseInt(targetMonthStr.split('-')[1]); // ดึงเลขเดือน (1-12)
-                        monthName = monthsTh[mPart - 1]; // แปลงเป็นชื่อเดือนไทย
+                        const mPart = parseInt(targetMonthStr.split('-')[1]);
+                        monthName = monthsTh[mPart - 1];
                     }
                     
-                    // สร้างข้อความวันที่ (เช่น "05 กุมภาพันธ์")
                     let dueDisplay = `${dayNum} ${monthName}`;
-                    if (!monthName) dueDisplay = dayNum; // กันเหนียวถ้าหาเดือนไม่เจอ
+                    if (!monthName) dueDisplay = dayNum;
 
                     return `
                     <div class="card-debt mb-1 ${isPaid ? 'paid' : ''} shadow-md flex justify-between items-center px-3 py-2">
@@ -380,25 +394,18 @@
                                     กำหนดจ่าย: ${dueDisplay}
                                 </span>
                             </div>
-                            
                             <div class="flex items-start justify-between">
                                 <div>
                                     <p class="text-sm font-bold ${isPaid ? 'line-through opacity-50 text-gray-400' : 'text-red-500'}">
                                         ฿${total.toLocaleString()}
                                     </p>
-                                    
-                                    ${!isPaid && minPay > 0 ? `
-                                        <p class="text-[9px] text-orange-300 mt-0.5">
-                                            (ขั้นต่ำ: ฿${minPay.toLocaleString()})
-                                        </p>` : ''}
+                                    ${!isPaid && minPay > 0 ? `<p class="text-[9px] text-orange-300 mt-0.5">(ขั้นต่ำ: ฿${minPay.toLocaleString()})</p>` : ''}
                                 </div>
-
                                 <div class="flex flex-col items-end">
                                     ${paid > 0 ? `<p class="text-[9px] text-green-400 font-bold">Paid: ฿${paid.toLocaleString()}</p>` : ''}
                                 </div>
                             </div>
                         </div>
-
                         <div class="flex items-center gap-3 ml-3">
                             <button onclick="payPrompt(${t.rowIndex},'${total}','${paid}','${safeEsc(t.card)}',${isPaid})" 
                                 class="${isPaid ? 'bg-blue-600' : 'bg-green-600'} text-white ${isPaid ? 'w-6 h-6' : 'px-3 py-1 text-[10px]'} flex items-center justify-center rounded-lg font-bold shadow-sm transition hover:scale-105 active:scale-95">
