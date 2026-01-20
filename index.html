@@ -7,16 +7,40 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Kanit', sans-serif; background-color: #0f172a; color: #e2e8f0; }
-        .app-card { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 1.5rem; transition: all 0.2s ease; cursor: pointer; text-decoration: none; }
-        .app-card:active { transform: scale(0.95); background: rgba(51, 65, 85, 0.9); }
-        .gradient-text { background: linear-gradient(135deg, #f97316, #ea580c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        body { 
+            font-family: 'Kanit', sans-serif; 
+            background-color: #0f172a; 
+            color: #e2e8f0;
+        }
+        .app-card { 
+            background: rgba(30, 41, 59, 0.7); 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+            border-radius: 1.5rem; 
+            transition: all 0.2s ease;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .app-card:active { 
+            transform: scale(0.95); 
+            background: rgba(51, 65, 85, 0.9); 
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
     </style>
 </head>
 <body class="p-5 max-w-lg mx-auto">
+
     <header class="text-center mt-8 mb-10">
         <h1 class="text-4xl font-bold gradient-text tracking-tight">GBASE</h1>
-        <p class="text-gray-500 text-[10px] uppercase tracking-[0.3em] mt-1">Command Center for GUN</p>
+        <p id="home-subtitle" class="text-gray-500 text-[10px] uppercase tracking-[0.3em] mt-1">Command Center</p>
     </header>
 
     <section class="bg-slate-800/50 p-6 rounded-[2rem] border border-white/5 mb-10 shadow-2xl text-center">
@@ -25,47 +49,82 @@
             <span class="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">Online</span>
         </div>
         <p class="text-gray-400 text-xs mb-1">ยินดีต้อนรับกลับครับ</p>
-        <h2 class="text-2xl font-bold text-white uppercase">คุณกัญจน์</h2>
+        <h2 id="home-username" class="text-2xl font-bold text-white uppercase">คุณกันต์</h2>
     </section>
 
     <nav class="grid grid-cols-2 gap-4">
-        <a href="money.html" class="app-card p-6 flex flex-col items-center justify-center text-center shadow-lg border-orange-500/30 border">
+        
+        <a href="money.html" class="app-card p-6 shadow-lg border-orange-500/30 border">
             <div class="w-14 h-14 bg-orange-500/10 rounded-2xl flex items-center justify-center mb-3">
                 <span class="text-3xl">💰</span>
             </div>
             <span class="text-sm font-semibold text-white">Money<br>Manager Pro</span>
         </a>
 
-        <div class="app-card p-6 flex flex-col items-center justify-center text-center opacity-40 grayscale">
-            <div class="w-14 h-14 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-3"><span class="text-3xl">📝</span></div>
+        <div class="app-card p-6 opacity-40 grayscale">
+            <div class="w-14 h-14 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-3">
+                <span class="text-3xl">📝</span>
+            </div>
             <span class="text-sm font-semibold text-white">Daily<br>Notes</span>
         </div>
         
-        <div class="app-card p-6 flex flex-col items-center justify-center text-center opacity-40 grayscale">
-            <div class="w-14 h-14 bg-green-500/10 rounded-2xl flex items-center justify-center mb-3"><span class="text-3xl">📅</span></div>
+        <div class="app-card p-6 opacity-40 grayscale">
+            <div class="w-14 h-14 bg-green-500/10 rounded-2xl flex items-center justify-center mb-3">
+                <span class="text-3xl">📅</span>
+            </div>
             <span class="text-sm font-semibold text-white">Tasks<br>Planner</span>
         </div>
 
-        <div class="app-card p-6 flex flex-col items-center justify-center text-center opacity-40 grayscale">
-            <div class="w-14 h-14 bg-gray-500/10 rounded-2xl flex items-center justify-center mb-3"><span class="text-3xl">⚙️</span></div>
+        <a href="settings.html" class="app-card p-6 shadow-lg border border-gray-700/50 hover:border-gray-500 transition">
+            <div class="w-14 h-14 bg-gray-500/10 rounded-2xl flex items-center justify-center mb-3">
+                <span class="text-3xl">⚙️</span>
+            </div>
             <span class="text-sm font-semibold text-white">System<br>Settings</span>
-        </div>
+        </a>
+
     </nav>
-    <footer class="mt-16 text-center"><p class="text-[9px] text-gray-600 uppercase tracking-widest">© 2026 GBASE PERSONAL OS</p></footer>
-    <script src="config.js"></script> <script>
-        // เมื่อโหลดหน้าเว็บเสร็จ ให้เอา URL จาก config.js ไปใส่ในปุ่มต่างๆ
-        window.onload = function() {
-            // ดึงค่า URL มาจาก CONFIG.SCRIPT_URL
-            const myUrl = CONFIG.SCRIPT_URL;
+
+    <footer class="mt-16 text-center">
+        <p class="text-[9px] text-gray-600 uppercase tracking-widest">© 2026 GBASE PERSONAL OS</p>
+    </footer>
+
+    <script src="config.js"></script>
+
+    <script>
+        window.onload = async function() {
+            // 1. ลองดึงข้อมูลจาก LocalStorage มาโชว์ก่อนทันที (ไม่ต้องรอโหลด)
+            // จะทำให้หน้าเว็บรู้สึกเร็วมาก ไม่กระพริบ
+            const localName = localStorage.getItem('gbase_username');
+            const localSub = localStorage.getItem('gbase_subtitle');
             
-            // (ถ้าปุ่มคุณลิงก์ไปหน้า money.html อยู่แล้ว ไม่ต้องทำอะไรตรงนี้)
-            // แต่ถ้าคุณมีปุ่มที่ลิงก์ไป GAS โดยตรง ให้ตั้ง id ให้ปุ่มนั้น แล้วใช้คำสั่งนี้:
-            // document.getElementById('myButtonId').href = myUrl;
-            
-            console.log("Loaded Configuration URL:", myUrl);
+            if (localName) document.getElementById('home-username').innerText = localName;
+            if (localSub) document.getElementById('home-subtitle').innerText = localSub;
+
+            // 2. แอบไปดึงข้อมูลล่าสุดจาก Google Sheets มาอัปเดต (เผื่อมีการแก้จากเครื่องอื่น)
+            try {
+                if (typeof CONFIG === 'undefined' || !CONFIG.SCRIPT_URL) {
+                    console.error("Config not found. Please create config.js");
+                    return;
+                }
+
+                const res = await fetch(CONFIG.SCRIPT_URL + '?get=settings');
+                const data = await res.json();
+                
+                // ถ้ามีข้อมูลใหม่ ก็อัปเดตหน้าจอและบันทึกลงเครื่อง
+                if (data.username) {
+                    document.getElementById('home-username').innerText = data.username;
+                    localStorage.setItem('gbase_username', data.username);
+                }
+                if (data.subtitle) {
+                    document.getElementById('home-subtitle').innerText = data.subtitle;
+                    localStorage.setItem('gbase_subtitle', data.subtitle);
+                }
+            } catch (e) {
+                console.log("Offline or Error loading settings: " + e.message);
+                // ถ้าโหลดไม่ได้ ก็ใช้ค่าเดิมที่โชว์ไปแล้ว ไม่ต้องทำอะไร
+            }
         }
     </script>
-</body>
-</html>
+
 </body>
 </html>
