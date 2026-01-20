@@ -29,11 +29,15 @@
         .spinner { width: 30px; height: 30px; border: 3px solid rgba(34, 197, 94, 0.2); border-top: 3px solid #22c55e; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* Sync Badge (มุมขวาบน) */
+        /* Sync Badge */
         .sync-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 9px; color: #94a3b8; background: rgba(30, 41, 59, 0.5); padding: 2px 8px; border-radius: 99px; border: 1px solid rgba(255, 255, 255, 0.05); }
         .sync-dot { width: 6px; height: 6px; background-color: #22c55e; border-radius: 50%; display: inline-block; }
         .syncing .sync-dot { animation: pulse 1s infinite; }
         @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
+        
+        /* Delete Button in List */
+        .btn-del-weight { padding: 4px 8px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border-radius: 6px; font-size: 10px; cursor: pointer; transition: 0.2s; }
+        .btn-del-weight:hover { background: #ef4444; color: white; }
     </style>
 </head>
 <body>
@@ -52,7 +56,6 @@
     </div>
 
     <div class="p-4 max-w-lg mx-auto pb-20">
-        
         <div class="flex bg-slate-800/50 rounded-lg p-1 mb-4">
             <button onclick="switchTab('workout')" id="tab-workout" class="tab-btn active flex-1 py-2 text-xs font-bold rounded-md">🏋️ ออกกำลังกาย</button>
             <button onclick="switchTab('weight')" id="tab-weight" class="tab-btn flex-1 py-2 text-xs font-bold rounded-md">⚖️ น้ำหนัก</button>
@@ -74,9 +77,7 @@
                 </div>
                 <p id="progressText" class="text-[10px] text-right text-gray-400 mt-1">0% Complete</p>
             </div>
-
-            <div id="workoutList" class="space-y-2">
-                </div>
+            <div id="workoutList" class="space-y-2"></div>
         </div>
 
         <div id="view-weight" class="hidden">
@@ -97,50 +98,38 @@
             <div class="text-[10px] text-gray-500 uppercase font-bold mb-2 ml-1">ประวัติย้อนหลัง</div>
             <div id="weightHistory" class="space-y-1"></div>
         </div>
-
     </div>
 
     <script src="config.js"></script>
     <script>
-        const CACHE_KEY = 'gbase_fitness_cache'; // ชื่อสำหรับเก็บข้อมูลลงเครื่อง
+        const CACHE_KEY = 'gbase_fitness_cache';
         let globalData = { weights: [], workouts: [] };
         let chartInstance = null;
 
         window.onload = function() {
-            // ตั้งค่าวันที่เป็นปัจจุบัน
             document.getElementById('workoutDate').valueAsDate = new Date();
-
-            // 1. ดึง Cache มาแสดงก่อนทันที (Fast Load)
             const cachedData = localStorage.getItem(CACHE_KEY);
             if (cachedData) {
                 try {
                     globalData = JSON.parse(cachedData);
                     renderWorkouts();
                     renderWeight();
-                    // โหลดข้อมูลจริงแบบเงียบๆ (Background Sync)
                     fetchData(true);
-                } catch(e) {
-                    fetchData(false); // ถ้า Cache พัง ให้โหลดปกติ
-                }
+                } catch(e) { fetchData(false); }
             } else {
-                fetchData(false); // ถ้าไม่มี Cache ให้โหลดแบบโชว์ Loader
+                fetchData(false);
             }
         }
 
         async function fetchData(isBackground = false) {
             if (!isBackground) document.getElementById('loader').style.display = 'flex';
-            if (isBackground) showSyncStatus(true); // โชว์ไฟกระพริบถ้าโหลดเบื้องหลัง
-
+            if (isBackground) showSyncStatus(true);
             try {
                 if (typeof CONFIG === 'undefined' || !CONFIG.SCRIPT_URL) return;
                 const res = await fetch(CONFIG.SCRIPT_URL + '?get=fitnessData&t=' + new Date().getTime());
                 const data = await res.json();
-                
                 globalData = data;
-                
-                // บันทึกลงเครื่อง (Update Cache)
                 localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-
                 renderWorkouts();
                 renderWeight();
             } catch (e) {
@@ -155,52 +144,31 @@
         function showSyncStatus(show) {
             const el = document.getElementById('syncStatus');
             const txt = document.getElementById('syncText');
-            if(show) {
-                el.classList.remove('hidden');
-                el.classList.add('syncing');
-                txt.innerText = "Syncing...";
-            } else {
-                el.classList.remove('syncing');
-                txt.innerText = "Updated";
-                setTimeout(() => { el.classList.add('hidden'); }, 2000);
-            }
+            if(show) { el.classList.remove('hidden'); el.classList.add('syncing'); txt.innerText = "Syncing..."; }
+            else { el.classList.remove('syncing'); txt.innerText = "Updated"; setTimeout(() => { el.classList.add('hidden'); }, 2000); }
         }
 
-        // --- WORKOUT LOGIC ---
         function renderWorkouts() {
             const selectedDateStr = document.getElementById('workoutDate').value;
             const list = document.getElementById('workoutList');
             list.innerHTML = '';
-
             const todayWorkouts = (globalData.workouts || []).filter(w => {
                 const wDate = new Date(w.date).toISOString().split('T')[0];
                 return wDate === selectedDateStr;
             });
-
             if (todayWorkouts.length === 0) {
                 list.innerHTML = `<div class="text-center py-10 text-gray-500 text-xs italic">วันนี้ยังไม่มีรายการออกกำลังกาย<br>กดปุ่ม + เพื่อเพิ่ม</div>`;
-                updateProgress(0, 0);
-                return;
+                updateProgress(0, 0); return;
             }
-
             let doneCount = 0;
             todayWorkouts.forEach(w => {
                 const isDone = w.status === 'Done';
                 if(isDone) doneCount++;
                 const item = document.createElement('div');
                 item.className = `workout-card p-3 flex justify-between items-center ${isDone ? 'done' : ''}`;
-                item.innerHTML = `
-                    <div>
-                        <h3 class="text-sm font-bold text-white">${w.exercise}</h3>
-                        <p class="text-[10px] text-gray-400">${w.sets}</p>
-                    </div>
-                    <div class="check-circle" onclick="toggleStatus(${w.rowIndex}, '${w.status}')">
-                        ${isDone ? '<span class="text-white text-xs">✔</span>' : ''}
-                    </div>
-                `;
+                item.innerHTML = `<div><h3 class="text-sm font-bold text-white">${w.exercise}</h3><p class="text-[10px] text-gray-400">${w.sets}</p></div><div class="check-circle" onclick="toggleStatus(${w.rowIndex}, '${w.status}')">${isDone ? '<span class="text-white text-xs">✔</span>' : ''}</div>`;
                 list.appendChild(item);
             });
-
             updateProgress(doneCount, todayWorkouts.length);
         }
 
@@ -212,60 +180,26 @@
 
         async function addWorkoutPrompt() {
             const date = document.getElementById('workoutDate').value;
-            const { value: formValues } = await Swal.fire({
-                title: 'เพิ่มรายการออกกำลังกาย',
-                html: `
-                    <input id="swal-ex" class="input-dark mb-2" placeholder="ชื่อท่า (เช่น วิ่ง, วิดพื้น)">
-                    <input id="swal-set" class="input-dark" placeholder="รายละเอียด (เช่น 3 เซต 10 ครั้ง)">
-                `,
-                background: '#1e293b', color: '#fff',
-                showCancelButton: true,
-                preConfirm: () => {
-                    return [
-                        document.getElementById('swal-ex').value,
-                        document.getElementById('swal-set').value
-                    ]
-                }
-            });
-
+            const { value: formValues } = await Swal.fire({ title: 'เพิ่มรายการ', html: `<input id="swal-ex" class="input-dark mb-2" placeholder="ชื่อท่า"><input id="swal-set" class="input-dark" placeholder="รายละเอียด">`, background: '#1e293b', color: '#fff', showCancelButton: true, preConfirm: () => [document.getElementById('swal-ex').value, document.getElementById('swal-set').value] });
             if (formValues && formValues[0]) {
                 document.getElementById('loader').style.display = 'flex';
-                await fetch(CONFIG.SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'addWorkout',
-                        date: date,
-                        exercise: formValues[0],
-                        sets: formValues[1] || '-'
-                    })
-                });
-                fetchData(true); // โหลดใหม่แบบเงียบๆ
+                await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'addWorkout', date: date, exercise: formValues[0], sets: formValues[1] || '-' }) });
+                fetchData(true);
             }
         }
 
         async function toggleStatus(idx, currentStatus) {
             const newStatus = currentStatus === 'Done' ? 'Pending' : 'Done';
-            
-            // Optimistic Update (แก้ในจอทันทีให้รู้สึกเร็ว)
             const item = globalData.workouts.find(w => w.rowIndex === idx);
             if(item) item.status = newStatus;
-            localStorage.setItem(CACHE_KEY, JSON.stringify(globalData)); // อัปเดต Cache ด้วย
+            localStorage.setItem(CACHE_KEY, JSON.stringify(globalData));
             renderWorkouts();
-
-            // ส่งข้อมูลไป Server เงียบๆ
             showSyncStatus(true);
-            await fetch(CONFIG.SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'toggleWorkout',
-                    rowIndex: idx,
-                    status: newStatus
-                })
-            });
+            await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'toggleWorkout', rowIndex: idx, status: newStatus }) });
             showSyncStatus(false);
         }
 
-        // --- WEIGHT LOGIC ---
+        // --- WEIGHT LOGIC UPDATED ---
         function renderWeight() {
             const weights = globalData.weights || [];
             if (weights.length > 0) {
@@ -273,74 +207,70 @@
                 document.getElementById('currentWeightDisplay').innerHTML = `${parseFloat(last.weight).toFixed(1)} <span class="text-sm text-gray-500">kg</span>`;
             }
 
+            // Graph
             const ctx = document.getElementById('weightChart').getContext('2d');
             const recentWeights = weights.slice(-15);
-            const labels = recentWeights.map(w => {
-                const d = new Date(w.date);
-                return `${d.getDate()}/${d.getMonth()+1}`;
-            });
+            const labels = recentWeights.map(w => { const d = new Date(w.date); return `${d.getDate()}/${d.getMonth()+1}`; });
             const dataPoints = recentWeights.map(w => w.weight);
-
             if (chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [{ label: 'Weight (kg)', data: dataPoints, borderColor: '#22c55e', backgroundColor: 'rgba(34, 197, 94, 0.1)', tension: 0.4, fill: true, pointRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } } } });
 
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Weight (kg)',
-                        data: dataPoints,
-                        borderColor: '#22c55e', // เปลี่ยนเป็นสีเขียวให้เข้าธีม
-                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                        tension: 0.4,
-                        fill: true,
-                        pointRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
-                    }
-                }
-            });
-
+            // History List with Delete & Diff
             const historyDiv = document.getElementById('weightHistory');
-            historyDiv.innerHTML = [...recentWeights].reverse().map(w => {
+            
+            // ใช้ Reverse Loop เพื่อเทียบกับข้อมูล "ก่อนหน้า"
+            let html = '';
+            for (let i = weights.length - 1; i >= 0; i--) {
+                const w = weights[i];
                 const d = new Date(w.date);
-                return `
-                    <div class="flex justify-between items-center bg-slate-800/30 p-2 rounded text-xs">
-                        <span class="text-gray-400">${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}</span>
-                        <span class="font-bold text-white">${w.weight} kg</span>
+                
+                // คำนวณส่วนต่าง (Diff) เทียบกับตัวก่อนหน้า (i-1)
+                let diffHtml = '';
+                if (i > 0) {
+                    const prev = weights[i-1].weight;
+                    const diff = w.weight - prev;
+                    if (diff > 0) diffHtml = `<span class="text-red-400 text-[10px] mr-2">▲ +${diff.toFixed(1)}</span>`;
+                    else if (diff < 0) diffHtml = `<span class="text-green-400 text-[10px] mr-2">▼ ${diff.toFixed(1)}</span>`;
+                    else diffHtml = `<span class="text-gray-500 text-[10px] mr-2">-</span>`;
+                }
+
+                html += `
+                    <div class="flex justify-between items-center bg-slate-800/30 p-2 rounded text-xs mb-1">
+                        <span class="text-gray-400 w-20">${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}</span>
+                        <div class="flex items-center">
+                            ${diffHtml}
+                            <span class="font-bold text-white w-14 text-right">${parseFloat(w.weight).toFixed(1)} kg</span>
+                            <button onclick="deleteWeight(${w.rowIndex}, ${w.weight})" class="btn-del-weight ml-3">🗑️</button>
+                        </div>
                     </div>
                 `;
-            }).join('');
+            }
+            historyDiv.innerHTML = html;
         }
 
         async function saveWeight() {
             const val = document.getElementById('newWeight').value;
             if(!val) return;
-            
             document.getElementById('loader').style.display = 'flex';
-            await fetch(CONFIG.SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'addWeight',
-                    weight: val
-                })
-            });
+            await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'addWeight', weight: val }) });
             document.getElementById('newWeight').value = '';
             fetchData(true);
             document.getElementById('loader').style.display = 'none';
         }
 
+        async function deleteWeight(idx, val) {
+            const { isConfirmed } = await Swal.fire({ title: 'ลบรายการ?', text: `น้ำหนัก ${val} kg`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', background: '#1e293b', color: '#fff' });
+            if (isConfirmed) {
+                document.getElementById('loader').style.display = 'flex';
+                await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteWeight', rowIndex: idx }) });
+                fetchData(true);
+                document.getElementById('loader').style.display = 'none';
+            }
+        }
+
         function switchTab(t) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('tab-'+t).classList.add('active');
-            
             document.getElementById('view-workout').classList.add('hidden');
             document.getElementById('view-weight').classList.add('hidden');
             document.getElementById('view-'+t).classList.remove('hidden');
