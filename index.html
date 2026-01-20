@@ -51,12 +51,11 @@
             <div class="numpad-btn" onclick="addPin('0')">0</div>
             <div class="numpad-btn text-red-400" onclick="clearPin()">⌫</div>
         </div>
-        
-        </div>
+    </div>
 
     <header class="text-center mt-8 mb-10">
         <h1 class="text-4xl font-bold gradient-text tracking-tight">GBASE</h1>
-        <p id="home-subtitle" class="text-gray-500 text-[10px] uppercase tracking-[0.3em] mt-1">Command Center</p>
+        <p id="home-subtitle" class="text-gray-500 text-[10px] uppercase tracking-[0.3em] mt-1">...</p>
     </header>
 
     <section class="bg-slate-800/50 p-6 rounded-[2rem] border border-white/5 mb-10 shadow-2xl text-center">
@@ -65,7 +64,7 @@
             <span class="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">Online</span>
         </div>
         <p class="text-gray-400 text-xs mb-1">ยินดีต้อนรับกลับครับ</p>
-        <h2 id="home-username" class="text-2xl font-bold text-white uppercase">คุณกันต์</h2>
+        <h2 id="home-username" class="text-2xl font-bold text-white uppercase">...</h2>
     </section>
 
     <nav class="grid grid-cols-2 gap-4">
@@ -96,6 +95,15 @@
     <script>
         let pinBuffer = "";
         
+        // ฟังก์ชันโหลดข้อมูล User จากเครื่องมาแสดง (ใช้ใน 2 จุด: ตอนโหลดหน้าเว็บ และ ตอนกดรหัสผ่านถูก)
+        function loadUserData() {
+            const localName = localStorage.getItem('gbase_username');
+            const localSub = localStorage.getItem('gbase_subtitle');
+            
+            if (localName) document.getElementById('home-username').innerText = localName;
+            if (localSub) document.getElementById('home-subtitle').innerText = localSub;
+        }
+
         function addPin(num) {
             if (pinBuffer.length < 4) {
                 pinBuffer += num;
@@ -120,10 +128,13 @@
         }
 
         function checkPin() {
-            // ดึงรหัสที่ตั้งค่าไว้ (ถ้าไม่มีใช้ 8896 เป็นค่าเริ่มต้นภายในโค้ด แต่ไม่โชว์บอก)
             const storedPin = localStorage.getItem('gbase_pin') || '8896';
             if (pinBuffer === storedPin) {
                 sessionStorage.setItem('gbase_unlocked', 'true');
+                
+                // *** เรียกใช้ฟังก์ชันเปลี่ยนชื่อ ก่อนปิดหน้าจอล็อก ***
+                loadUserData();
+
                 const overlay = document.getElementById('pin-overlay');
                 overlay.style.opacity = '0';
                 setTimeout(() => { overlay.style.display = 'none'; }, 300);
@@ -142,6 +153,7 @@
             location.reload();
         }
 
+        // รองรับการพิมพ์ด้วยคีย์บอร์ด
         document.addEventListener('keydown', (e) => {
             const overlay = document.getElementById('pin-overlay');
             if (!overlay || overlay.style.display === 'none') return;
@@ -155,27 +167,29 @@
         });
 
         window.onload = async function() {
+            // เช็ค Session ถ้าเคยล็อกอินแล้ว ให้โหลดชื่อและเปิดเลย
             if (sessionStorage.getItem('gbase_unlocked') === 'true') {
+                loadUserData(); 
                 document.getElementById('pin-overlay').style.display = 'none';
             }
 
-            const localName = localStorage.getItem('gbase_username');
-            const localSub = localStorage.getItem('gbase_subtitle');
-            
-            if (localName) document.getElementById('home-username').innerText = localName;
-            if (localSub) document.getElementById('home-subtitle').innerText = localSub;
-
+            // แอบโหลดข้อมูลล่าสุดจาก Server มาอัปเดต LocalStorage
             try {
                 if (typeof CONFIG === 'undefined' || !CONFIG.SCRIPT_URL) return;
                 const res = await fetch(CONFIG.SCRIPT_URL + '?get=settings');
                 const data = await res.json();
                 
                 if (data.username) {
-                    document.getElementById('home-username').innerText = data.username;
+                    // ถ้ายังอยู่ที่หน้าจอหลัก ให้อัปเดตชื่อทันทีด้วย
+                    if (sessionStorage.getItem('gbase_unlocked') === 'true') {
+                         document.getElementById('home-username').innerText = data.username;
+                    }
                     localStorage.setItem('gbase_username', data.username);
                 }
                 if (data.subtitle) {
-                    document.getElementById('home-subtitle').innerText = data.subtitle;
+                    if (sessionStorage.getItem('gbase_unlocked') === 'true') {
+                        document.getElementById('home-subtitle').innerText = data.subtitle;
+                    }
                     localStorage.setItem('gbase_subtitle', data.subtitle);
                 }
                 if (data.pin) {
