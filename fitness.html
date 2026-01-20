@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Iron Log - Fitness</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        if (sessionStorage.getItem('gbase_unlocked') !== 'true') {
+            window.location.href = 'index.html';
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Kanit', sans-serif; background-color: #0f172a; color: #e2e8f0; }
+        .input-dark { background: #1e293b; border: 1px solid #334155; color: white; border-radius: 8px; padding: 8px; width: 100%; outline: none; }
+        .tab-btn.active { border-bottom: 2px solid #22c55e; color: #22c55e; background-color: rgba(30, 41, 59, 0.5); }
+        .workout-card { background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; transition: 0.2s; }
+        .workout-card.done { opacity: 0.5; border-color: #22c55e; }
+        .check-circle { width: 24px; height: 24px; border: 2px solid #475569; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .workout-card.done .check-circle { background: #22c55e; border-color: #22c55e; }
+        
+        #loader { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
+        .spinner { width: 30px; height: 30px; border: 3px solid rgba(34, 197, 94, 0.2); border-top: 3px solid #22c55e; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div id="loader"><div class="spinner mb-2"></div><p class="text-green-400 text-xs">Loading...</p></div>
+
+    <div class="bg-slate-900 px-4 py-3 flex items-center justify-between border-b border-gray-800 sticky top-0 z-10">
+        <a href="index.html" class="flex items-center text-gray-400 hover:text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            <span class="text-xs font-bold uppercase">Back</span>
+        </a>
+        <h1 class="text-lg font-bold text-green-500 tracking-wider">IRON LOG</h1>
+        <div class="w-5"></div>
+    </div>
+
+    <div class="p-4 max-w-lg mx-auto pb-20">
+        
+        <div class="flex bg-slate-800/50 rounded-lg p-1 mb-4">
+            <button onclick="switchTab('workout')" id="tab-workout" class="tab-btn active flex-1 py-2 text-xs font-bold rounded-md">🏋️ ออกกำลังกาย</button>
+            <button onclick="switchTab('weight')" id="tab-weight" class="tab-btn flex-1 py-2 text-xs font-bold rounded-md">⚖️ น้ำหนัก</button>
+        </div>
+
+        <div id="view-workout">
+            <div class="bg-slate-800/50 p-4 rounded-2xl border border-white/5 mb-4">
+                <div class="flex justify-between items-end mb-2">
+                    <div>
+                        <p class="text-[10px] text-gray-500 uppercase">วันที่</p>
+                        <input type="date" id="workoutDate" class="bg-transparent text-white font-bold text-lg outline-none" onchange="renderWorkouts()">
+                    </div>
+                    <button onclick="addWorkoutPrompt()" class="bg-green-600 hover:bg-green-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition transform active:scale-95">
+                        + เพิ่มท่า
+                    </button>
+                </div>
+                <div class="h-1 bg-gray-700 rounded-full overflow-hidden">
+                    <div id="progressBar" class="h-full bg-green-500 transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <p id="progressText" class="text-[10px] text-right text-gray-400 mt-1">0% Complete</p>
+            </div>
+
+            <div id="workoutList" class="space-y-2">
+                </div>
+        </div>
+
+        <div id="view-weight" class="hidden">
+            <div class="bg-slate-800/50 p-4 rounded-2xl border border-white/5 mb-4 text-center">
+                <p class="text-[10px] text-gray-500 uppercase mb-1">น้ำหนักล่าสุด</p>
+                <h2 id="currentWeightDisplay" class="text-4xl font-bold text-white mb-2">--.- <span class="text-sm text-gray-500">kg</span></h2>
+                
+                <div class="flex gap-2 mt-4">
+                    <input type="number" id="newWeight" step="0.1" placeholder="กรอกน้ำหนักวันนี้..." class="input-dark text-center text-lg font-bold">
+                    <button onclick="saveWeight()" class="bg-blue-600 text-white px-4 rounded-lg font-bold shadow-lg active:scale-95">บันทึก</button>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/50 p-2 rounded-2xl border border-white/5 mb-4 h-64">
+                <canvas id="weightChart"></canvas>
+            </div>
+            
+            <div class="text-[10px] text-gray-500 uppercase font-bold mb-2 ml-1">ประวัติย้อนหลัง</div>
+            <div id="weightHistory" class="space-y-1"></div>
+        </div>
+
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        let globalData = { weights: [], workouts: [] };
+        let chartInstance = null;
+
+        window.onload = async function() {
+            document.getElementById('workoutDate').valueAsDate = new Date();
+            await fetchData();
+        }
+
+        async function fetchData() {
+            document.getElementById('loader').style.display = 'flex';
+            try {
+                if (typeof CONFIG === 'undefined' || !CONFIG.SCRIPT_URL) return;
+                const res = await fetch(CONFIG.SCRIPT_URL + '?get=fitnessData&t=' + new Date().getTime());
+                const data = await res.json();
+                
+                globalData = data;
+                renderWorkouts();
+                renderWeight();
+            } catch (e) {
+                console.error(e);
+                Swal.fire('Error', 'โหลดข้อมูลไม่สำเร็จ', 'error');
+            } finally {
+                document.getElementById('loader').style.display = 'none';
+            }
+        }
+
+        // --- WORKOUT LOGIC ---
+        function renderWorkouts() {
+            const selectedDateStr = document.getElementById('workoutDate').value;
+            const list = document.getElementById('workoutList');
+            list.innerHTML = '';
+
+            // กรองเฉพาะวันที่เลือก (เปรียบเทียบ string วันที่)
+            // หมายเหตุ: ข้อมูลจาก Sheet มาเป็น ISO String ต้องแปลงให้ตรงกัน
+            const todayWorkouts = globalData.workouts.filter(w => {
+                const wDate = new Date(w.date).toISOString().split('T')[0];
+                return wDate === selectedDateStr;
+            });
+
+            if (todayWorkouts.length === 0) {
+                list.innerHTML = `<div class="text-center py-10 text-gray-500 text-xs italic">วันนี้ยังไม่มีรายการออกกำลังกาย<br>กดปุ่ม + เพื่อเพิ่ม</div>`;
+                updateProgress(0, 0);
+                return;
+            }
+
+            let doneCount = 0;
+            todayWorkouts.forEach(w => {
+                const isDone = w.status === 'Done';
+                if(isDone) doneCount++;
+                const item = document.createElement('div');
+                item.className = `workout-card p-3 flex justify-between items-center ${isDone ? 'done' : ''}`;
+                item.innerHTML = `
+                    <div>
+                        <h3 class="text-sm font-bold text-white">${w.exercise}</h3>
+                        <p class="text-[10px] text-gray-400">${w.sets}</p>
+                    </div>
+                    <div class="check-circle" onclick="toggleStatus(${w.rowIndex}, '${w.status}')">
+                        ${isDone ? '<span class="text-white text-xs">✔</span>' : ''}
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+
+            updateProgress(doneCount, todayWorkouts.length);
+        }
+
+        function updateProgress(done, total) {
+            const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('progressText').innerText = `${percent}% Complete (${done}/${total})`;
+        }
+
+        async function addWorkoutPrompt() {
+            const date = document.getElementById('workoutDate').value;
+            const { value: formValues } = await Swal.fire({
+                title: 'เพิ่มรายการออกกำลังกาย',
+                html: `
+                    <input id="swal-ex" class="input-dark mb-2" placeholder="ชื่อท่า (เช่น วิ่ง, วิดพื้น)">
+                    <input id="swal-set" class="input-dark" placeholder="รายละเอียด (เช่น 3 เซต 10 ครั้ง)">
+                `,
+                background: '#1e293b', color: '#fff',
+                showCancelButton: true,
+                preConfirm: () => {
+                    return [
+                        document.getElementById('swal-ex').value,
+                        document.getElementById('swal-set').value
+                    ]
+                }
+            });
+
+            if (formValues && formValues[0]) {
+                document.getElementById('loader').style.display = 'flex';
+                await fetch(CONFIG.SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'addWorkout',
+                        date: date,
+                        exercise: formValues[0],
+                        sets: formValues[1] || '-'
+                    })
+                });
+                await fetchData();
+            }
+        }
+
+        async function toggleStatus(idx, currentStatus) {
+            const newStatus = currentStatus === 'Done' ? 'Pending' : 'Done';
+            // Optimistic Update (แก้หน้าจอไปก่อนเลย ไม่ต้องรอ Server)
+            const item = globalData.workouts.find(w => w.rowIndex === idx);
+            if(item) item.status = newStatus;
+            renderWorkouts();
+
+            // ส่งข้อมูลไป Server
+            await fetch(CONFIG.SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'toggleWorkout',
+                    rowIndex: idx,
+                    status: newStatus
+                })
+            });
+            // ไม่ต้อง fetchData ใหม่ เพราะเราแก้ Local ไปแล้วเพื่อความเร็ว
+        }
+
+        // --- WEIGHT LOGIC ---
+        function renderWeight() {
+            const weights = globalData.weights || [];
+            if (weights.length > 0) {
+                const last = weights[weights.length - 1];
+                document.getElementById('currentWeightDisplay').innerHTML = `${parseFloat(last.weight).toFixed(1)} <span class="text-sm text-gray-500">kg</span>`;
+            }
+
+            // Render Chart
+            const ctx = document.getElementById('weightChart').getContext('2d');
+            
+            // เตรียมข้อมูลกราฟ (เอาแค่ 10-15 วันล่าสุดพอดูสวยงาม)
+            const recentWeights = weights.slice(-15);
+            const labels = recentWeights.map(w => {
+                const d = new Date(w.date);
+                return `${d.getDate()}/${d.getMonth()+1}`;
+            });
+            const dataPoints = recentWeights.map(w => w.weight);
+
+            if (chartInstance) chartInstance.destroy();
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Weight (kg)',
+                        data: dataPoints,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { 
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#94a3b8' } 
+                        },
+                        x: { 
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8' } 
+                        }
+                    }
+                }
+            });
+
+            // History List
+            const historyDiv = document.getElementById('weightHistory');
+            historyDiv.innerHTML = [...recentWeights].reverse().map(w => {
+                const d = new Date(w.date);
+                return `
+                    <div class="flex justify-between items-center bg-slate-800/30 p-2 rounded text-xs">
+                        <span class="text-gray-400">${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}</span>
+                        <span class="font-bold text-white">${w.weight} kg</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function saveWeight() {
+            const val = document.getElementById('newWeight').value;
+            if(!val) return;
+            
+            document.getElementById('loader').style.display = 'flex';
+            await fetch(CONFIG.SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'addWeight',
+                    weight: val
+                })
+            });
+            document.getElementById('newWeight').value = '';
+            await fetchData();
+        }
+
+        function switchTab(t) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-'+t).classList.add('active');
+            
+            document.getElementById('view-workout').classList.add('hidden');
+            document.getElementById('view-weight').classList.add('hidden');
+            document.getElementById('view-'+t).classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
