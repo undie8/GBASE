@@ -21,12 +21,10 @@
         .tab-btn.active { border-bottom: 2px solid #f97316; color: #f97316; background-color: rgba(30, 41, 59, 0.5); }
         .custom-checkbox { width: 18px; height: 18px; accent-color: #ef4444; cursor: pointer; }
         
-        /* Loader แบบเต็มจอ (ใช้ตอนบันทึก) */
         #loader { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
         .spinner { width: 25px; height: 25px; border: 3px solid rgba(249, 115, 22, 0.1); border-top: 3px solid #f97316; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* Mini Loader (ใช้ตอน Sync ข้อมูล) */
         .sync-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 9px; color: #94a3b8; background: rgba(30, 41, 59, 0.5); padding: 2px 8px; border-radius: 99px; border: 1px solid rgba(255, 255, 255, 0.05); }
         .sync-dot { width: 6px; height: 6px; background-color: #f97316; border-radius: 50%; display: inline-block; }
         .syncing .sync-dot { animation: pulse 1s infinite; }
@@ -35,16 +33,20 @@
         .month-picker-btn { display: inline-flex; align-items: center; justify-content: center; background: rgba(30, 41, 59, 0.8); padding: 6px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; position: relative; min-width: 140px; }
         .month-label-text { font-size: 14px; font-weight: 600; color: #f97316; }
         .month-input-real { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
+        
         .quick-card { background: rgba(30, 41, 59, 0.5); border-radius: 12px; padding: 8px 10px; border: 1px solid rgba(255, 255, 255, 0.05); }
         .quick-card-title { font-size: 11px; font-weight: 600; color: #fff; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .form-single-row { display: grid; grid-template-columns: 1.3fr 1.1fr 0.5fr minmax(75px, auto) 36px; gap: 4px; align-items: center; }
         .input-compact { background: #1e293b; border: 1px solid #334155; color: white; font-size: 10px !important; height: 30px !important; border-radius: 6px; padding: 0 4px !important; width: 100%; outline: none; }
         .btn-check-compact { height: 30px; background: #f97316; color: white; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; }
+        
         .card-debt { background: rgba(30, 41, 59, 0.7); border-radius: 1rem; border-left: 4px solid #ef4444; padding: 8px 12px !important; }
         .card-debt.paid { border-left-color: #22c55e; opacity: 0.8; }
+        
         .btn-save-all { background: linear-gradient(135deg, #f97316, #ea580c); color: white; font-weight: bold; padding: 10px; border-radius: 12px; width: 100%; margin-bottom: 12px; font-size: 13px; display: none; }
         .btn-delete-selected { background: #ef4444; color: white; font-weight: bold; padding: 6px 12px; border-radius: 8px; font-size: 10px; display: none; }
         .btn-pay-selected { background: #3b82f6; color: white; font-weight: bold; padding: 6px 12px; border-radius: 8px; font-size: 10px; display: none; margin-right: 5px; }
+        
         .limit-info-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-top: 6px; }
         .limit-box { background: rgba(15, 23, 42, 0.4); padding: 4px; border-radius: 6px; text-align: center; }
         .limit-label { font-size: 7px; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
@@ -101,7 +103,7 @@
             <div id="quickAddList" class="space-y-2 mb-4"></div>
             <button id="btnSaveAll" onclick="saveAll()" class="btn-save-all">💾 บันทึกที่กรอกทั้งหมด</button>
             <div class="flex justify-between items-center mb-2 px-1">
-                <p class="text-[10px] text-gray-500 font-bold uppercase">รายการบิล/หนี้ (Transactions)</p>
+                <p class="text-[10px] text-gray-500 font-bold uppercase">รายการบิล/หนี้</p>
                 <div class="flex">
                     <button id="btnPaySelectedDebt" onclick="payBulk()" class="btn-pay-selected">💰 จ่ายที่เลือก</button>
                     <button id="btnDelSelectedDebt" onclick="deleteBulk('deleteTransaction', 'debt-cb')" class="btn-delete-selected">🗑️ ลบที่เลือก</button>
@@ -135,7 +137,24 @@
             <div id="incomeList" class="space-y-1.5"></div>
         </div>
 
-        <div id="view-history" class="hidden"><div class="bg-slate-800/50 p-2 rounded-xl border border-gray-700 h-56 mb-3"><canvas id="myChart"></canvas></div><div id="historyList" class="space-y-1.5"></div></div>
+        <div id="view-history" class="hidden">
+            <div class="flex justify-center gap-2 mb-4 bg-slate-800/50 p-2 rounded-xl border border-gray-700">
+                <div class="flex flex-col">
+                    <label class="text-[8px] text-gray-400 pl-1">ตั้งแต่</label>
+                    <input type="month" id="histStart" class="input-compact text-center h-8" onchange="renderHistoryWithFilter()">
+                </div>
+                <div class="flex items-center text-gray-500 pt-3">-</div>
+                <div class="flex flex-col">
+                    <label class="text-[8px] text-gray-400 pl-1">ถึง</label>
+                    <input type="month" id="histEnd" class="input-compact text-center h-8" onchange="renderHistoryWithFilter()">
+                </div>
+            </div>
+
+            <div class="bg-slate-800/50 p-2 rounded-xl border border-gray-700 h-56 mb-3">
+                <canvas id="myChart"></canvas>
+            </div>
+            <div id="historyList" class="space-y-1.5"></div>
+        </div>
         
         <div id="view-setting" class="hidden">
             <div class="bg-slate-800/80 p-3 rounded-xl border border-white/5 mb-4 shadow-lg">
@@ -161,7 +180,7 @@
 
     <script src="config.js"></script>
     <script>
-        const CACHE_KEY = 'gbase_money_data_cache'; // Key สำหรับเก็บข้อมูลในเครื่อง
+        const CACHE_KEY = 'gbase_money_data_cache';
         
         let globalData = { cards:[], transactions:[], income:[], history:{} };
         const monthsTh = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
@@ -169,29 +188,32 @@
         window.onload = function() {
             const now = new Date();
             const currentMonth = now.toISOString().substring(0, 7);
+            
+            // ตั้งค่าเดือนปัจจุบันให้ตัวเลือกบิล/รายรับ
             document.getElementById('debtMonth').value = currentMonth;
             document.getElementById('incomeMonth').value = currentMonth;
 
-            // 1. ลองดึงข้อมูลเก่าจากเครื่องมาโชว์ก่อน (Fast Load)
+            // ตั้งค่าเริ่มต้นให้ตัวกรองสถิติ (6 เดือนย้อนหลัง - เดือนปัจจุบัน)
+            const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+            const startMonthStr = sixMonthsAgo.toISOString().substring(0, 7);
+            document.getElementById('histStart').value = startMonthStr;
+            document.getElementById('histEnd').value = currentMonth;
+
+            // Load Cache First
             const cachedData = localStorage.getItem(CACHE_KEY);
             if (cachedData) {
                 try {
                     globalData = JSON.parse(cachedData);
-                    renderApp(); // แสดงผลทันที
-                    fetchData(true); // แล้วค่อยไปดึงข้อมูลใหม่แบบเงียบๆ
-                } catch(e) {
-                    fetchData(false); // ถ้า Cache พัง ให้โหลดปกติ
-                }
+                    renderApp();
+                    fetchData(true);
+                } catch(e) { fetchData(false); }
             } else {
-                fetchData(false); // ถ้าไม่มี Cache ให้โหลดแบบโชว์ Loader
+                fetchData(false);
             }
         };
 
         async function fetchData(isBackground = false) { 
-            // ถ้าไม่ใช่การโหลดเบื้องหลัง (เช่น กด Save หรือเข้าครั้งแรก) ให้โชว์ Loader ใหญ่
             if (!isBackground) showLoader(true); 
-            
-            // ถ้าเป็นการโหลดเบื้องหลัง ให้โชว์สถานะ Sync เล็กๆ ด้านบน
             if (isBackground) showSyncStatus(true);
 
             try { 
@@ -211,35 +233,25 @@
                 const data = (typeof rawData === 'string') ? JSON.parse(rawData) : rawData;
                 globalData = data;
                 
-                // บันทึกข้อมูลล่าสุดลงเครื่อง (Cache)
                 localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-
                 renderApp(); 
             } catch (e) { 
                 console.error("Fetch Error:", e);
                 if (!isBackground) Swal.fire({icon:'error', title:'โหลดข้อมูลไม่สำเร็จ', text:'กรุณาเช็คการเชื่อมต่อ'});
             } 
-            finally { 
-                showLoader(false); 
-                showSyncStatus(false);
-            } 
+            finally { showLoader(false); showSyncStatus(false); } 
         }
 
         function showSyncStatus(show) {
             const el = document.getElementById('syncStatus');
             const txt = document.getElementById('syncText');
             if(show) {
-                el.classList.remove('hidden');
-                el.classList.add('syncing');
-                txt.innerText = "Syncing...";
+                el.classList.remove('hidden'); el.classList.add('syncing'); txt.innerText = "Syncing...";
             } else {
-                el.classList.remove('syncing');
-                txt.innerText = "Updated";
-                setTimeout(() => { el.classList.add('hidden'); }, 2000); // โชว์ว่า Updated แป๊บนึงแล้วค่อยหาย
+                el.classList.remove('syncing'); txt.innerText = "Updated";
+                setTimeout(() => { el.classList.add('hidden'); }, 2000);
             }
         }
-
-        // --- (ส่วนฟังก์ชันอื่นๆ เหมือนเดิมเป๊ะ แต่รวมมาให้ครบแล้วด้านล่าง) ---
 
         function formatThaiMonth(dateStr) { 
             if (!dateStr || typeof dateStr !== 'string' || !dateStr.includes('-')) return dateStr || ""; 
@@ -270,9 +282,7 @@
                 document.getElementById('displayMonthLabelIncome').innerText = formatThaiMonth(incMonth);
                 
                 let totalInc = 0; 
-                (globalData.income || []).forEach(i => { 
-                    if (i.month === selMonth) totalInc += safeNum(i.amount); 
-                });
+                (globalData.income || []).forEach(i => { if (i.month === selMonth) totalInc += safeNum(i.amount); });
                 
                 let totalBillThisMonth = 0, totalPaid = 0, totalOutstanding = 0;
                 const transactions = (globalData.transactions || []);
@@ -292,8 +302,35 @@
                 document.getElementById('subTotalAll').innerText = totalBillThisMonth.toLocaleString();
                 document.getElementById('subTotalPaid').innerText = totalPaid.toLocaleString();
                 document.getElementById('subTotalRem').innerText = totalOutstanding.toLocaleString();
-                renderQuickAdd(selMonth); renderDebtList(selMonth); renderIncomeList(incMonth); renderHistoryList(); renderSettingList(); checkAnyInput();
+                renderQuickAdd(selMonth); renderDebtList(selMonth); renderIncomeList(incMonth); 
+                
+                // เรียกใช้ฟังก์ชันแสดงสถิติแบบมีตัวกรอง
+                renderHistoryWithFilter(); 
+                
+                renderSettingList(); checkAnyInput();
             } catch (e) { console.error("Render App Error:", e); }
+        }
+
+        // ฟังก์ชันใหม่: กรองและแสดงสถิติ
+        function renderHistoryWithFilter() {
+            const start = document.getElementById('histStart').value;
+            const end = document.getElementById('histEnd').value;
+            const historyData = globalData.history || {};
+            
+            // กรอง Key ตามช่วงเวลา
+            const filteredKeys = Object.keys(historyData).filter(key => {
+                if (!start && !end) return true;
+                if (start && key < start) return false;
+                if (end && key > end) return false;
+                return true;
+            });
+
+            // เรียงลำดับ (ล่าสุดอยู่บน สำหรับรายการ / เก่าสุดอยู่ซ้าย สำหรับกราฟ)
+            const listKeys = [...filteredKeys].sort((a,b) => b.localeCompare(a));
+            const chartKeys = [...filteredKeys].sort();
+
+            renderHistoryList(listKeys);
+            renderChart(chartKeys);
         }
 
         function renderQuickAdd(month) {
@@ -429,22 +466,20 @@
                 }).join('') || '<p class="text-center text-gray-500 py-6 text-[8px] italic">ไม่มีข้อมูลรายรับ</p>'; 
             } catch(e) { console.error(e); }
         }
-        function renderHistoryList() {
+        function renderHistoryList(keys) {
             try {
                 const historyData = globalData.history || {};
-                const sortedKeys = Object.keys(historyData).sort((a,b) => b.localeCompare(a));
-                document.getElementById('historyList').innerHTML = sortedKeys.map(m => {
+                document.getElementById('historyList').innerHTML = keys.map(m => {
                     const d = historyData[m]; const rem = Math.max(0, d.bill - d.paid); const net = d.inc - d.bill;
                     return `<div class="accordion-item bg-slate-800/40 rounded-xl border border-gray-700 overflow-hidden mb-2"><div class="p-3 flex justify-between items-center cursor-pointer"><div><p class="text-[10px] font-bold text-white">📅 ${formatThaiMonth(m)}</p><div class="flex gap-2 text-[8px] mt-1"><span class="text-green-400">รับ: ฿${d.inc.toLocaleString()}</span><span class="text-red-400">บิล: ฿${d.bill.toLocaleString()}</span><span class="text-orange-500 font-bold">ค้าง: ฿${rem.toLocaleString()}</span></div></div><div><p class="text-[7px] text-gray-500 uppercase">ส่วนต่าง</p><p class="text-[10px] font-bold ${net>=0?'text-blue-400':'text-red-400'}">฿${net.toLocaleString()}</p></div></div></div>`;
                 }).join('');
-                setTimeout(renderChart, 100);
             } catch(e) { console.error(e); }
         }
-        function renderChart() {
+        function renderChart(keys) {
             const ctx = document.getElementById('myChart'); if(!ctx) return;
-            const historyData = globalData.history || {}; const sortedKeys = Object.keys(historyData).sort(); 
+            const historyData = globalData.history || {}; 
             if (window.chartObj) window.chartObj.destroy();
-            window.chartObj = new Chart(ctx, { type: 'line', data: { labels: sortedKeys.map(l => formatThaiMonth(l)), datasets: [{ label: 'บิลรายเดือน', data: sortedKeys.map(l => historyData[l].bill || 0), borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', fill: true, tension: 0.4 }, { label: 'รายรับรวม', data: sortedKeys.map(l => historyData[l].inc || 0), borderColor: '#22c55e', backgroundColor: 'rgba(34, 197, 94, 0.1)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#94a3b8', font: { size: 9 } } } }, scales: { y: { ticks: { color: '#64748b', font: { size: 8 } }, grid: { color: 'rgba(51, 65, 85, 0.2)' } }, x: { ticks: { color: '#94a3b8', font: { size: 8 } }, grid: { display: false } } } } });
+            window.chartObj = new Chart(ctx, { type: 'line', data: { labels: keys.map(l => formatThaiMonth(l)), datasets: [{ label: 'บิลรายเดือน', data: keys.map(l => historyData[l].bill || 0), borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', fill: true, tension: 0.4 }, { label: 'รายรับรวม', data: keys.map(l => historyData[l].inc || 0), borderColor: '#22c55e', backgroundColor: 'rgba(34, 197, 94, 0.1)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#94a3b8', font: { size: 9 } } } }, scales: { y: { ticks: { color: '#64748b', font: { size: 8 } }, grid: { color: 'rgba(51, 65, 85, 0.2)' } }, x: { ticks: { color: '#94a3b8', font: { size: 8 } }, grid: { display: false } } } } });
         }
         function renderSettingList() { 
             try {
@@ -468,7 +503,7 @@
         function showLoader(s) { document.getElementById('loader').style.display = s ? 'flex' : 'none'; }
         function checkAnyInput() { let hasInput = false; document.querySelectorAll('.tot-input-check').forEach(i => { if (i.value.trim() !== "") hasInput = true; }); document.getElementById('btnSaveAll').style.display = hasInput ? 'block' : 'none'; }
         function updateDelBtn(className, btnDelId) { const checkedCount = document.querySelectorAll(`.${className}:checked`).length; document.getElementById(btnDelId).style.display = checkedCount > 0 ? 'block' : 'none'; if (className === 'debt-cb') document.getElementById('btnPaySelectedDebt').style.display = checkedCount > 1 ? 'block' : 'none'; }
-        function switchTab(t) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById('tab-'+t).classList.add('active'); ['debt','income','history','setting'].forEach(v => document.getElementById('view-'+v).classList.toggle('hidden', v !== t)); if (t === 'history') setTimeout(renderChart, 100); }
+        function switchTab(t) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById('tab-'+t).classList.add('active'); ['debt','income','history','setting'].forEach(v => document.getElementById('view-'+v).classList.toggle('hidden', v !== t)); if (t === 'history') setTimeout(() => { renderHistoryWithFilter(); }, 100); }
     </script>
 </body>
 </html>
