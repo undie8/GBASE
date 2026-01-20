@@ -96,8 +96,8 @@
     <script src="config.js"></script>
     <script>
         let pinBuffer = "";
-        const correctPin = localStorage.getItem('gbase_pin') || '8896';
-
+        
+        // ฟังก์ชันรับค่า PIN
         function addPin(num) {
             if (pinBuffer.length < 4) {
                 pinBuffer += num;
@@ -124,10 +124,7 @@
         function checkPin() {
             const storedPin = localStorage.getItem('gbase_pin') || '8896';
             if (pinBuffer === storedPin) {
-                // บันทึก Session ว่าล็อกอินแล้ว
                 sessionStorage.setItem('gbase_unlocked', 'true');
-                
-                // ปลดล็อกหน้าจอ
                 const overlay = document.getElementById('pin-overlay');
                 overlay.style.opacity = '0';
                 setTimeout(() => { overlay.style.display = 'none'; }, 300);
@@ -146,21 +143,33 @@
             location.reload();
         }
 
+        // *** ส่วนที่เพิ่ม: ดักจับการกดแป้นพิมพ์ ***
+        document.addEventListener('keydown', (e) => {
+            // ถ้าหน้าจอ PIN ไม่แสดงอยู่ ก็ไม่ต้องทำอะไร (ป้องกันการกดตอนใช้งานแอป)
+            const overlay = document.getElementById('pin-overlay');
+            if (!overlay || overlay.style.display === 'none') return;
+
+            // ตรวจสอบว่าเป็นตัวเลข 0-9
+            if (e.key >= '0' && e.key <= '9') {
+                addPin(e.key);
+            }
+            // ตรวจสอบปุ่ม Backspace
+            else if (e.key === 'Backspace') {
+                clearPin();
+            }
+        });
+
         window.onload = async function() {
-            // เช็คว่าเคยล็อกอินหรือยัง
             if (sessionStorage.getItem('gbase_unlocked') === 'true') {
                 document.getElementById('pin-overlay').style.display = 'none';
             }
 
-            // 1. ดึงข้อมูลจากเครื่องมาโชว์ทันที (เพื่อให้เร็ว)
             const localName = localStorage.getItem('gbase_username');
             const localSub = localStorage.getItem('gbase_subtitle');
             
-            // ใส่ข้อมูลลงใน ID ที่เราเตรียมไว้ (ถ้าไม่มี ID โค้ดจะ error ตรงนี้)
             if (localName) document.getElementById('home-username').innerText = localName;
             if (localSub) document.getElementById('home-subtitle').innerText = localSub;
 
-            // 2. ดึงข้อมูลล่าสุดจาก Google Sheets (Settings)
             try {
                 if (typeof CONFIG === 'undefined' || !CONFIG.SCRIPT_URL) return;
                 const res = await fetch(CONFIG.SCRIPT_URL + '?get=settings');
