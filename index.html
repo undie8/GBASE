@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GBase - Personal System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Kanit', sans-serif; 
+            background-color: #0f172a; /* พื้นหลังสีเข้มสไตล์แอปสมัยใหม่ */
+            color: #e2e8f0;
+        }
+        .app-card { 
+            background: rgba(30, 41, 59, 0.7); 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+            border-radius: 1.5rem; 
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        /* เอฟเฟกต์เมื่อกดปุ่ม */
+        .app-card:active { 
+            transform: scale(0.95); 
+            background: rgba(51, 65, 85, 0.9); 
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="p-5 max-w-lg mx-auto">
+
+    <header class="text-center mt-8 mb-10">
+        <h1 class="text-4xl font-bold gradient-text tracking-tight">GBASE</h1>
+        <p class="text-gray-500 text-[10px] uppercase tracking-[0.3em] mt-1">Command Center for GUN</p>
+    </header>
+
+    <section class="bg-slate-800/50 p-6 rounded-[2rem] border border-white/5 mb-10 shadow-2xl">
+        <div class="flex justify-between items-center mb-4">
+            <span class="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Financial Overview</span>
+            <span class="text-[10px] bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full">Live</span>
+        </div>
+        <div class="text-center">
+            <p class="text-gray-400 text-xs mb-1">ยอดหนี้ค้างจ่ายรวม</p>
+            <h2 class="text-3xl font-bold text-white">฿75,339.86</h2> </div>
+    </section>
+
+    <nav class="grid grid-cols-2 gap-4">
+        
+        <a href="YOUR_GOOGLE_SCRIPT_URL_HERE" class="app-card p-6 flex flex-col items-center justify-center text-center shadow-lg">
+            <div class="w-14 h-14 bg-orange-500/10 rounded-2xl flex items-center justify-center mb-3">
+                <span class="text-3xl">💰</span>
+            </div>
+            <span class="text-sm font-semibold text-white">Money<br>Manager</span>
+        </a>
+
+        <div class="app-card p-6 flex flex-col items-center justify-center text-center opacity-40 grayscale">
+            <div class="w-14 h-14 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-3">
+                <span class="text-3xl">📝</span>
+            </div>
+            <span class="text-sm font-semibold text-white">Daily<br>Notes</span>
+            <span class="text-[8px] text-orange-400 mt-1 font-bold">LOCKED</span>
+        </div>
+
+        <div class="app-card p-6 flex flex-col items-center justify-center text-center opacity-40 grayscale">
+            <div class="w-14 h-14 bg-green-500/10 rounded-2xl flex items-center justify-center mb-3">
+                <span class="text-3xl">📅</span>
+            </div>
+            <span class="text-sm font-semibold text-white">Tasks<br>Planner</span>
+            <span class="text-[8px] text-orange-400 mt-1 font-bold">LOCKED</span>
+        </div>
+
+        <div class="app-card p-6 flex flex-col items-center justify-center text-center opacity-40 grayscale">
+            <div class="w-14 h-14 bg-gray-500/10 rounded-2xl flex items-center justify-center mb-3">
+                <span class="text-3xl">⚙️</span>
+            </div>
+            <span class="text-sm font-semibold text-white">System<br>Settings</span>
+        </div>
+
+    </nav>
+
+    <footer class="mt-16 text-center">
+        <p class="text-[9px] text-gray-600 uppercase tracking-widest">© 2026 GBASE PERSONAL OS. ALL RIGHTS RESERVED.</p>
+    </footer>
+
+</body>
+</html>
