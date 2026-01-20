@@ -57,17 +57,19 @@
 <body>
     <div id="loader"><div class="spinner mb-2"></div><p class="text-orange-400 text-[10px]">Processing...</p></div>
 
-  <div class="bg-slate-900 px-4 py-3 flex items-center justify-between border-b border-gray-800 sticky top-0 z-10">
-        <a href="index.html" class="flex items-center text-gray-400 hover:text-white">
+  <div class="bg-slate-900 px-4 py-3 flex items-center justify-between border-b border-gray-800 sticky top-0 z-10 relative">
+        <a href="index.html" class="flex items-center text-gray-400 hover:text-white z-20">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
             <span class="text-xs font-bold uppercase tracking-wider">Back</span>
         </a>
 
-        <h1 class="text-lg font-bold text-orange-500 tracking-wider">DEBT MANAGER</h1>
+        <h1 class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-lg font-bold text-orange-500 tracking-wider whitespace-nowrap">
+            DEBT MANAGER
+        </h1>
 
-        <div id="syncStatus" class="sync-badge hidden">
+        <div id="syncStatus" class="sync-badge hidden z-20">
             <span class="sync-dot"></span> <span id="syncText">Syncing...</span>
         </div>
     </div>
