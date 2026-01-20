@@ -2,6 +2,13 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
+    <script>
+        // ถ้าไม่มีบัตรผ่าน (ยังไม่ใส่รหัสที่หน้า index) ให้ดีดกลับไปหน้า index เดี๋ยวนี้
+        if (sessionStorage.getItem('gbase_unlocked') !== 'true') {
+            window.location.href = 'index.html';
+        }
+    </script>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>System Settings</title>
     <script src="https://cdn.tailwindcss.com"></script>
