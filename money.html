@@ -208,14 +208,20 @@
                 document.getElementById('displayMonthLabel').innerText = formatThaiMonth(selMonth);
                 document.getElementById('displayMonthLabelIncome').innerText = formatThaiMonth(incMonth);
                 
+                // --- [แก้ไขจุดที่ 1] คำนวณรายรับ เฉพาะเดือนที่เลือก (selMonth) ---
                 let totalInc = 0; 
-                (globalData.income || []).forEach(i => { totalInc += safeNum(i.amount); });
+                (globalData.income || []).forEach(i => { 
+                    // เช็คว่าเดือนของรายรับ (i.month) ตรงกับเดือนที่เลือก (selMonth) หรือไม่
+                    if (i.month === selMonth) {
+                        totalInc += safeNum(i.amount); 
+                    }
+                });
                 
                 let totalBillThisMonth = 0, totalPaid = 0, totalOutstanding = 0;
                 const transactions = (globalData.transactions || []);
                 
                 transactions.forEach(t => {
-                    // *** แก้ไข: เช็คแค่ t.month เท่านั้น (เดือนบิล) ***
+                    // คำนวณยอดหนี้ เฉพาะเดือนที่เลือก (selMonth)
                     if (t.month === selMonth) { 
                         const bill = safeNum(t.total);
                         const paid = safeNum(t.paid);
@@ -227,6 +233,7 @@
                 
                 let totalCardDebt = 0; (globalData.cards || []).forEach(c => { totalCardDebt += safeNum(c.used); });
                 
+                // แสดงผลยอดเงิน
                 document.getElementById('headerInc').innerText = `฿${totalInc.toLocaleString()}`;
                 document.getElementById('headerAccumDebt').innerText = `฿${totalCardDebt.toLocaleString()}`;
                 document.getElementById('headerNet').innerText = `฿${totalOutstanding.toLocaleString()}`;
