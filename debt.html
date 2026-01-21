@@ -455,10 +455,11 @@
             showLoader(true);
             try { await fetch(CONFIG.SCRIPT_URL, { method:'POST', body: JSON.stringify({ action:'addIncome', month: fullDate, type, amount: val }) }); document.getElementById('incVal').value = ""; document.getElementById('incDay').value = ""; fetchData(false); } catch (e) { showLoader(false); }
         }
-        function renderDebtList(month) {
+      function renderDebtList(month) {
             try {
-                // month คือค่าจาก dropdown เช่น "2026-02"
+                // กรองข้อมูลตามเดือนที่เลือกดู (Filter Month)
                 const list = (globalData.transactions || []).filter(t => t.month === month);
+                
                 const isPaidCheck = (t) => { 
                     const total = parseFloat(safeNum(t.total).toFixed(2)); 
                     const paid = parseFloat(safeNum(t.paid).toFixed(2)); 
@@ -483,14 +484,15 @@
                     const minPay = safeNum(t.minPay); 
                     const isPaid = (paid >= parseFloat(total.toFixed(2)));
 
-                    // --- 🔴 ส่วนที่แก้ไขสำคัญ: บังคับดึงเดือนจากตัวแปร month ที่เลือกดูอยู่ 🔴 ---
+                    // --- 🔴 จุดที่แก้ไข: ดึงชื่อเดือนจากข้อมูลเดือนที่ต้องจ่าย (Pay Month) 🔴 ---
                     let dayNum = safeStr(t.dueDate).replace(/[^0-9]/g, ''); 
                     if (dayNum.length === 1) dayNum = "0" + dayNum;
 
+                    // ดึงเดือนจาก t.payMonth (ค่าจากคอลัมน์สุดท้ายใน Sheets)
+                    let displayMonthStr = t.payMonth || t.month; 
                     let monthName = "";
-                    // ใช้ค่า month (parameter ของฟังก์ชัน) มาหาชื่อเดือนไทย แทนการใช้ t.month ในแถวข้อมูล
-                    if (month && month.includes('-')) { 
-                        const mPart = parseInt(month.split('-')[1]); 
+                    if (displayMonthStr && displayMonthStr.includes('-')) { 
+                        const mPart = parseInt(displayMonthStr.split('-')[1]); 
                         monthName = monthsTh[mPart - 1]; 
                     }
                     
