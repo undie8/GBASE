@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>System Settings</title>
     <script>
-        // ถ้า URL ลงท้ายด้วย .html ให้ลบออกทันที
         if (window.location.pathname.endsWith('.html')) {
             var newUrl = window.location.pathname.replace('.html', '');
             window.history.replaceState(null, '', newUrl);
@@ -14,6 +13,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="config.js"></script>
     
     <script>
         if (sessionStorage.getItem('gbase_unlocked') !== 'true') {
@@ -41,26 +41,31 @@
     <div class="space-y-6">
         <div class="bg-slate-800/50 p-6 rounded-2xl border border-white/5 shadow-lg">
             <h2 class="text-sm text-gray-400 font-bold uppercase mb-4 tracking-wider">ข้อมูลส่วนตัว</h2>
-            
             <div class="mb-4">
-                <label class="block text-xs text-gray-400 mb-2 ml-1">ชื่อที่แสดง (Display Name)</label>
-                <input type="text" id="username" class="input-field" placeholder="กำลังโหลด...">
+                <label class="block text-xs text-gray-400 mb-2 ml-1">ชื่อที่แสดง</label>
+                <input type="text" id="username" class="input-field" placeholder="Loading...">
             </div>
-
             <div class="mb-2">
-                <label class="block text-xs text-gray-400 mb-2 ml-1">คำโปรยระบบ (Subtitle)</label>
-                <input type="text" id="subtitle" class="input-field" placeholder="กำลังโหลด...">
+                <label class="block text-xs text-gray-400 mb-2 ml-1">คำโปรยระบบ</label>
+                <input type="text" id="subtitle" class="input-field" placeholder="Loading...">
             </div>
         </div>
 
-        <div class="bg-slate-800/50 p-6 rounded-2xl border border-red-500/20 shadow-lg">
-            <h2 class="text-sm text-red-400 font-bold uppercase mb-4 tracking-wider">ความปลอดภัย (Security)</h2>
-            <div class="mb-2">
-                <label class="block text-xs text-gray-400 mb-2 ml-1">รหัสผ่านเข้าแอป (4 หลัก)</label>
-                
-                <input type="password" inputmode="numeric" id="pin" class="input-field text-center tracking-[0.5em] font-bold text-xl" maxlength="4" placeholder="••••">
-                
-                <p class="text-[10px] text-gray-500 mt-2">* ใช้สำหรับล็อกหน้าจอเริ่มต้น (ซ่อนตัวเลขแล้ว)</p>
+        <div class="bg-slate-800/50 p-6 rounded-2xl border border-red-500/20 shadow-lg space-y-4">
+            <h2 class="text-sm text-red-400 font-bold uppercase mb-2 tracking-wider">ความปลอดภัย (Security)</h2>
+            
+            <div>
+                <label class="block text-xs text-gray-400 mb-2 ml-1">🔒 ยืนยันรหัสผ่านเดิม (Old PIN)</label>
+                <input type="password" inputmode="numeric" id="oldPin" class="input-field text-center tracking-[0.5em] font-bold text-xl border-red-500/30 focus:border-red-500" maxlength="4" placeholder="••••">
+                <p class="text-[10px] text-red-400/70 mt-1">* จำเป็นต้องระบุเพื่อบันทึกการเปลี่ยนแปลง</p>
+            </div>
+
+            <hr class="border-gray-700/50 my-2">
+
+            <div>
+                <label class="block text-xs text-gray-400 mb-2 ml-1">✨ รหัสผ่านใหม่ (New PIN)</label>
+                <input type="password" inputmode="numeric" id="newPin" class="input-field text-center tracking-[0.5em] font-bold text-xl" maxlength="4" placeholder="••••">
+                <p class="text-[10px] text-gray-500 mt-1">* ตั้งใหม่ หรือ ใส่เลขเดิมก็ได้</p>
             </div>
         </div>
 
@@ -69,21 +74,18 @@
 
     <div id="loader" class="fixed inset-0 bg-slate-900/90 hidden flex-col items-center justify-center z-50">
         <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-white mb-3"></div>
-        <p class="text-white text-sm">กำลังบันทึก...</p>
+        <p class="text-white text-sm">กำลังตรวจสอบและบันทึก...</p>
     </div>
 
-    <script src="config.js"></script>
     <script>
         window.onload = async function() {
-            // 1. ดึงข้อมูลจากเครื่องมาโชว์ทันที
+            // โหลดข้อมูลจาก Cache
             const localName = localStorage.getItem('gbase_username');
             const localSub = localStorage.getItem('gbase_subtitle');
-            // ไม่ดึง PIN จาก localStorage มาแสดง เพราะไม่ปลอดภัยและเราไม่เก็บ PIN ในเครื่องแล้ว
-            
             if (localName) document.getElementById('username').value = localName;
             if (localSub) document.getElementById('subtitle').value = localSub;
 
-            // 2. แอบโหลดข้อมูลล่าสุดจาก Server
+            // โหลดข้อมูลล่าสุดจาก Server
             try {
                 if (typeof CONFIG === 'undefined' || !CONFIG.SCRIPT_URL) return;
                 const res = await fetch(CONFIG.SCRIPT_URL + '?get=settings');
@@ -91,49 +93,55 @@
                 
                 if (data.username) document.getElementById('username').value = data.username;
                 if (data.subtitle) document.getElementById('subtitle').value = data.subtitle;
-                
-                // PIN จะดึงมาแสดงเป็นจุดๆ (หรือค่าจริงที่ซ่อนอยู่) เพื่อให้รู้ว่ามีค่าเดิมอยู่
-                if (data.pin) document.getElementById('pin').value = data.pin;
-                
+                // 🟢 PIN เดิม ให้เอามาใส่ช่อง "New PIN" รอไว้เลย (User จะได้ไม่ต้องกรอกใหม่ถ้าไม่อยากเปลี่ยน)
+                if (data.pin) document.getElementById('newPin').value = data.pin;
+
                 localStorage.setItem('gbase_username', data.username);
                 localStorage.setItem('gbase_subtitle', data.subtitle);
-                // ไม่บันทึก PIN ลง localStorage
-            } catch (error) { 
-                console.log("Using cached settings due to network delay"); 
-            }
+            } catch (error) {}
         }
 
         async function saveSettings() {
             const username = document.getElementById('username').value;
             const subtitle = document.getElementById('subtitle').value;
-            const pin = document.getElementById('pin').value;
+            const oldPin = document.getElementById('oldPin').value;
+            const newPin = document.getElementById('newPin').value;
 
+            // Validation
             if(!username) return Swal.fire({icon:'warning', title:'กรุณาระบุชื่อ'});
-            if(!pin || pin.length !== 4 || isNaN(pin)) return Swal.fire({icon:'warning', title:'รหัสผ่านต้องเป็นตัวเลข 4 หลัก'});
+            if(!oldPin || oldPin.length !== 4) return Swal.fire({icon:'warning', title:'กรุณาระบุรหัสเดิมให้ครบ 4 หลัก'});
+            if(!newPin || newPin.length !== 4) return Swal.fire({icon:'warning', title:'รหัสใหม่ต้องมี 4 หลัก'});
 
             document.getElementById('loader').style.display = 'flex';
 
             try {
-                await fetch(CONFIG.SCRIPT_URL, {
+                const res = await fetch(CONFIG.SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({
                         action: 'saveSettings',
+                        oldPin: oldPin, // 🟢 ส่งรหัสเดิมไปเช็ค
                         settings: {
                             username: username,
                             subtitle: subtitle,
-                            pin: pin
+                            pin: newPin // 🟢 ส่งรหัสใหม่ไปบันทึก
                         }
                     })
                 });
 
+                const data = await res.json();
+
+                if (data.status === 'error') {
+                    throw new Error(data.message); // ถ้ารหัสเดิมผิด Server จะส่ง error กลับมา
+                }
+
+                // บันทึกสำเร็จ
                 localStorage.setItem('gbase_username', username);
                 localStorage.setItem('gbase_subtitle', subtitle);
-                // ไม่บันทึก PIN ลง localStorage
-
+                
                 await Swal.fire({
                     icon: 'success',
                     title: 'บันทึกสำเร็จ!',
-                    text: 'ข้อมูลและรหัสผ่านถูกอัปเดตเรียบร้อยแล้ว',
+                    text: 'ข้อมูลถูกอัปเดตเรียบร้อยแล้ว',
                     background: '#1e293b', color: '#fff', confirmButtonColor: '#3b82f6'
                 });
                 
@@ -141,7 +149,12 @@
 
             } catch (error) {
                 document.getElementById('loader').style.display = 'none';
-                Swal.fire({icon:'error', title:'เกิดข้อผิดพลาด', text: error.message});
+                Swal.fire({
+                    icon: 'error', 
+                    title: 'บันทึกไม่ได้', 
+                    text: error.message === 'Wrong Password' ? 'รหัสผ่านเดิมไม่ถูกต้อง' : error.message,
+                    background: '#1e293b', color: '#fff'
+                });
             }
         }
     </script>
