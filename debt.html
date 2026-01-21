@@ -534,13 +534,43 @@ function renderDebtList(month) {
                 if (itemsToPay.length > 0) { await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'payBatch', items: itemsToPay }) }); fetchData(false); }
             }
         }
-        async function deleteBulk(action, className) {
-            const selected = Array.from(document.querySelectorAll(`.${className}:checked`)).map(cb => parseInt(cb.value));
-            if (selected.length === 0) return;
-            if ((await Swal.fire({ title: `ลบ ${selected.length} รายการ?`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', background: '#1e293b', color: '#fff' })).isConfirmed) {
-                showLoader(true); try { const batchAction = (action === 'deleteTransaction') ? 'deleteBatchTransaction' : 'deleteBatchIncome'; await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: batchAction, indexes: selected }) }); fetchData(false); } catch (e) { showLoader(false); }
-            }
-        }
+      async function deleteBulk(action, className) {
+    // ดึงเลขแถว (rowIndex) จาก checkbox ที่ถูกเลือก
+    const selected = Array.from(document.querySelectorAll(`.${className}:checked`)).map(cb => parseInt(cb.value));
+    
+    if (selected.length === 0) return;
+
+    const result = await Swal.fire({ 
+        title: `ลบ ${selected.length} รายการ?`, 
+        text: "ข้อมูลจะถูกลบออกจาก Google Sheets ถาวร",
+        icon: 'warning', 
+        showCancelButton: true, 
+        confirmButtonColor: '#ef4444', 
+        confirmButtonText: 'ยืนยันการลบ',
+        cancelButtonText: 'ยกเลิก',
+        background: '#1e293b', 
+        color: '#fff' 
+    });
+
+    if (result.isConfirmed) {
+        showLoader(true); 
+        try { 
+            const batchAction = (action === 'deleteTransaction') ? 'deleteBatchTransaction' : 'deleteBatchIncome'; 
+            
+            // ส่งค่า rowIndices ไปให้ Apps Script
+            await fetch(CONFIG.SCRIPT_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ action: batchAction, rowIndices: selected }) 
+            }); 
+            
+            fetchData(false); // โหลดข้อมูลใหม่หลังจากลบเสร็จ
+        } catch (e) { 
+            console.error("Delete Error:", e);
+            showLoader(false); 
+            Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถลบข้อมูลได้', 'error');
+        } 
+    }
+}
         function renderIncomeList(month) { 
             try {
                 const list = (globalData.income || []).filter(i => i.month === month); list.sort((a, b) => new Date(a.fullDate) - new Date(b.fullDate));
