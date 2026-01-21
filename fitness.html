@@ -20,10 +20,6 @@
     </style>
 </head>
 <body>
-    <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbwR_cBHWL8aCktDnTQdNYtsNSEY5GnEmLunu343-WhAHJkSnrELMw2QvkQz0nbRGe9c/exec"; 
-    </script>
-
     <div id="loader" class="fixed inset-0 bg-slate-900/90 z-50 hidden flex-col items-center justify-center">
         <div class="w-8 h-8 border-4 border-green-500/20 border-t-green-500 rounded-full animate-spin mb-2"></div>
         <p class="text-green-400 text-xs">Processing...</p>
@@ -67,6 +63,7 @@
         </div>
     </div>
 
+    <script src="config.js"></script>
     <script>
         let globalData = {};
 
@@ -79,7 +76,7 @@
         async function fetchData() {
             document.getElementById('loader').style.display = 'flex';
             try {
-                const res = await fetch(`${API_URL}?get=data&t=${new Date().getTime()}`);
+                const res = await fetch(`${CONFIG.SCRIPT_URL}?get=data&t=${new Date().getTime()}`);
                 globalData = await res.json();
                 renderWorkouts();
                 renderWeight();
@@ -106,9 +103,8 @@
                     canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
                     
                     try {
-                        const res = await fetch(API_URL + '?t=' + new Date().getTime(), {
+                        const res = await fetch(CONFIG.SCRIPT_URL + '?t=' + new Date().getTime(), {
     method: 'POST',
-    mode: 'no-cors', // ลองเพิ่มโหมดนี้ถ้าติดปัญหาเรื่องสิทธิ์การส่ง (CORS)
     body: JSON.stringify({
         action: 'uploadPhoto',
         date: document.getElementById('photoDate').value,
@@ -166,7 +162,7 @@
         }
         async function sendPost(data) {
             document.getElementById('loader').style.display = 'flex';
-            await fetch(API_URL, {method:'POST', body:JSON.stringify(data)});
+            await fetch(CONFIG.SCRIPT_URL, {method:'POST', body:JSON.stringify(data)});
             document.getElementById('loader').style.display = 'none';
         }
         function switchTab(t) {
