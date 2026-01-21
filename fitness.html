@@ -38,31 +38,32 @@
 </head>
 <body class="text-slate-200 font-sans min-h-screen pb-24">
 
-    <div class="fixed top-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md z-50 border-b border-slate-800 h-28 shadow-lg">
+    <div class="fixed top-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md z-50 border-b border-slate-800 h-16 shadow-lg flex items-center justify-center">
         
-        <div class="absolute left-4 top-1/2 -translate-y-1/2 z-50">
-            <button onclick="window.location.href='index'" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:text-white transition shadow-md border border-slate-700">
-                <i class="fas fa-arrow-left text-xl"></i>
+        <div class="absolute left-4">
+            <button onclick="window.location.href='index'" class="w-9 h-9 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:text-white transition shadow-md border border-slate-700">
+                <i class="fas fa-arrow-left text-lg"></i>
             </button>
         </div>
 
-        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <h1 class="text-3xl font-black bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent tracking-widest uppercase drop-shadow-sm">
-                IRON LOG
-            </h1>
-            <p id="headerDate" class="text-xl font-bold text-white mt-1 opacity-100 shadow-sm">
-                ...
-            </p>
-        </div>
+        <h1 class="text-xl font-black bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent tracking-widest uppercase drop-shadow-sm">
+            IRON LOG
+        </h1>
 
-        <div class="absolute right-4 top-1/2 -translate-y-1/2 z-50">
+        <div class="absolute right-4">
             <div id="syncStatus" class="sync-badge hidden">
                 <span class="sync-dot"></span> <span id="syncText">Syncing...</span>
             </div>
         </div>
     </div>
 
-    <div class="max-w-md mx-auto pt-32 px-5">
+    <div class="max-w-md mx-auto pt-24 px-5">
+
+        <div class="text-center mb-6">
+            <p id="headerDate" class="text-xl font-bold text-white tracking-wide drop-shadow-md">
+                ...
+            </p>
+        </div>
 
         <div class="flex bg-slate-800/50 p-1.5 rounded-2xl mb-6 border border-slate-700/50">
             <button onclick="switchTab('weight')" id="tabWeight" class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg bg-slate-700 text-white"><i class="fas fa-weight-scale mr-2 text-orange-400"></i>น้ำหนัก</button>
@@ -99,8 +100,8 @@
                 <div id="uploadPreview" class="hidden mt-2 relative z-20">
                     <img id="imgPreview" class="w-full h-48 object-cover rounded-xl mb-3 shadow-lg bg-black">
                     <div class="flex gap-2 relative z-50"> 
-                        <input type="date" id="photoDate" onchange="autoFillWeight()" class="flex-1 bg-slate-800 p-2 rounded-lg text-xs text-white border border-slate-600 cursor-pointer focus:border-green-500 outline-none shadow-md">
-                        <input type="number" id="photoWeight" placeholder="นน." class="w-20 bg-slate-800 p-2 rounded-lg text-xs text-white text-center border border-slate-600 font-bold focus:border-green-500 outline-none shadow-md">
+                        <input type="date" id="photoDate" onchange="autoFillWeight()" class="flex-1 bg-slate-800 p-2 rounded-lg text-xs text-white border border-slate-600 cursor-pointer focus:border-green-500 outline-none shadow-md" style="position: relative; z-index: 50;">
+                        <input type="number" id="photoWeight" placeholder="นน." class="w-20 bg-slate-800 p-2 rounded-lg text-xs text-white text-center border border-slate-600 font-bold focus:border-green-500 outline-none shadow-md" style="position: relative; z-index: 50;">
                     </div>
                     <div class="flex gap-2 mt-3 relative z-50">
                         <button onclick="uploadPhoto()" id="btnUploadConfirm" class="flex-1 bg-green-600 text-white py-2 rounded-lg text-sm font-bold shadow-lg">ยืนยัน</button>
@@ -170,27 +171,15 @@
             }
         }
 
-        // 🟢 แก้ไข Logic เปรียบเทียบวันที่ (แก้ปัญหา Timezone)
         function autoFillWeight() {
-            const selectedDate = document.getElementById('photoDate').value; // YYYY-MM-DD
+            const selectedDate = document.getElementById('photoDate').value;
             if (!selectedDate) return;
-
             const record = globalWeights.find(w => {
-                // แปลงวันที่จากฐานข้อมูลให้เป็น YYYY-MM-DD แบบ Local
                 const d = new Date(w.date);
-                const year = d.getFullYear();
-                const month = String(d.getMonth() + 1).padStart(2, '0');
-                const day = String(d.getDate()).padStart(2, '0');
-                const wDateStr = `${year}-${month}-${day}`;
-                
+                const wDateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
                 return wDateStr === selectedDate;
             });
-
-            if (record) { 
-                document.getElementById('photoWeight').value = record.value; 
-            } else { 
-                document.getElementById('photoWeight').value = ''; 
-            }
+            if (record) { document.getElementById('photoWeight').value = record.value; } else { document.getElementById('photoWeight').value = ''; }
         }
 
         function showSyncStatus(show) {
@@ -256,7 +245,7 @@
                     document.getElementById('imgPreview').src = e.target.result; 
                     document.getElementById('uploadPlaceholder').classList.add('hidden'); 
                     document.getElementById('uploadPreview').classList.remove('hidden'); 
-                    input.classList.add('hidden'); // Hide input to allow clicking behind elements
+                    input.classList.add('hidden');
                     autoFillWeight();
                 }; 
                 reader.readAsDataURL(input.files[0]); 
