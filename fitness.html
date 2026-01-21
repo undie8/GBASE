@@ -147,23 +147,35 @@
         async function fetchData(isBackground = false) {
             if (!isBackground) document.getElementById('loader').style.display = 'flex';
             if (isBackground) showSyncStatus(true);
+            
             try {
                 if (typeof CONFIG === 'undefined' || !CONFIG.SCRIPT_URL) return;
-                const res = await fetch(CONFIG.SCRIPT_URL + '?get=fitnessData&t=' + new Date().getTime());
+                
+                // ✅ แก้ไข: เพิ่ม Parameter สุ่มเลข (Cache Busting) ให้หนักขึ้น
+                // และเพิ่มโหมด 'no-cache' เพื่อดึงข้อมูลใหม่จาก Server เสมอ
+                const cacheBuster = new Date().getTime() + '-' + Math.random();
+                const res = await fetch(`${CONFIG.SCRIPT_URL}?get=fitnessData&v=${cacheBuster}`, {
+                    method: 'GET',
+                    cache: 'no-store' // บังคับไม่ให้เก็บแคช
+                });
+
                 const data = await res.json();
-                globalData = data;
-                localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-                renderWorkouts();
-                renderWeight();
+                
+                // ตรวจสอบความถูกต้องของข้อมูล
+                if (data && (data.weights || data.workouts)) {
+                    globalData = data;
+                    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+                    renderWorkouts();
+                    renderWeight();
+                }
             } catch (e) {
-                console.error(e);
-                if (!isBackground) Swal.fire('Error', 'โหลดข้อมูลไม่สำเร็จ', 'error');
+                console.error("Fetch Error:", e);
+                if (!isBackground) Swal.fire('Error', 'โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่', 'error');
             } finally {
                 document.getElementById('loader').style.display = 'none';
                 showSyncStatus(false);
             }
         }
-
         function showSyncStatus(show) {
             const el = document.getElementById('syncStatus');
             const txt = document.getElementById('syncText');
