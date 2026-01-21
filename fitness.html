@@ -126,16 +126,38 @@
         let globalData = { weights: [], workouts: [], gallery: [] };
         let chartInstance = null;
 
-        window.onload = function() {
+       window.onload = function() {
+            // 1. ตั้งค่าวันที่ไทย
             const d = new Date();
             const dateOpts = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
             document.getElementById('bigDateDisplay').innerText = d.toLocaleDateString('th-TH', dateOpts);
             
+            // 2. ตั้งค่า Date Picker
             document.getElementById('workoutDate').valueAsDate = new Date();
-            document.getElementById('photoDate').valueAsDate = new Date();
+            if(document.getElementById('photoDate')) {
+                document.getElementById('photoDate').valueAsDate = new Date();
+            }
             
-            // Force fetch on load
-            fetchData(false);
+            // 3. ✅ ระบบ Cache First (แก้ตรงนี้)
+            const cachedData = localStorage.getItem(CACHE_KEY);
+            if (cachedData) {
+                // ถ้ามีของเก่าในเครื่อง ให้โชว์เลย (เร็วปรื๋อ!)
+                try {
+                    globalData = JSON.parse(cachedData);
+                    renderWorkouts();
+                    renderWeight();
+                    if(typeof renderGallery === 'function') renderGallery();
+                    
+                    // แล้วค่อยแอบไปเช็คของใหม่เบื้องหลัง (Background Sync)
+                    fetchData(true); 
+                } catch(e) {
+                    // ถ้าไฟล์เสีย ให้โหลดใหม่แบบปกติ
+                    fetchData(false);
+                }
+            } else {
+                // ถ้าไม่มีของเก่าเลย ค่อยหมุน Loading
+                fetchData(false);
+            }
         }
 
         // --- Core Functions ---
