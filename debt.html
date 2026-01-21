@@ -373,52 +373,36 @@
             renderChart(chartKeys);
         }
 
-   function renderDebtList(month) {
-    try {
-        const list = (globalData.transactions || []).filter(t => t.month === month);
-        const isPaidCheck = (t) => { 
-            const total = parseFloat(safeNum(t.total).toFixed(2)); 
-            const paid = parseFloat(safeNum(t.paid).toFixed(2)); 
-            return paid >= total; 
-        };
-        
-        const unpaidList = list.filter(t => !isPaidCheck(t));
-        const paidList = list.filter(t => isPaidCheck(t));
-        
-        unpaidList.sort((a, b) => { 
-            const getFullDateVal = (item) => { 
-                const ym = item.payMonth || item.month || "9999-12"; 
-                const d = safeStr(item.dueDate).replace(/\D/g, '').padStart(2, '0') || "99"; 
-                return ym + "-" + d; 
-            };
-            return getFullDateVal(a).localeCompare(getFullDateVal(b));
-        });
+        function renderQuickAdd(month) {
+            try {
+                const currentViewMonth = month.substring(0, 7);
+                const recorded = (globalData.transactions || []).filter(t => safeStr(t.month).substring(0, 7) === currentViewMonth).map(t => safeStr(t.card).trim().toLowerCase());
+                const grouped = (globalData.cards || []).reduce((acc, c) => {
+                    const cName = safeStr(c.name);
+                    const b = cName.split(' - ')[0] || 'อื่นๆ';
+                    if (recorded.includes(cName.trim().toLowerCase())) return acc;
+                    if (!acc[b]) acc[b] = []; acc[b].push(c); return acc;
+                }, {});
+                const parts = month.split("-");
+                if (parts.length < 2) return;
+                const [y, m] = parts;
+                const currMonthName = monthsTh[parseInt(m)-1];
+                let nextM_int = parseInt(m) + 1; let nextY_int = parseInt(y);
+                if (nextM_int > 12) { nextM_int = 1; nextY_int++; }
+                const nextMonthName = monthsTh[nextM_int - 1];
 
-        document.getElementById('debtList').innerHTML = [...unpaidList, ...paidList].map(t => {
-            const total = safeNum(t.total); 
-            let paid = safeNum(t.paid); 
-            const minPay = safeNum(t.minPay); 
-            const isPaid = (paid >= parseFloat(total.toFixed(2)));
-
-            // --- 🔴 ส่วนที่แก้ไข: ดึงชื่อเดือนจาก parameter 'month' ที่ฟังก์ชันรับมา 🔴 ---
-            let dayNum = safeStr(t.dueDate).replace(/[^0-9]/g, ''); 
-            if (dayNum.length === 1) dayNum = "0" + dayNum;
-
-            // ใช้ค่า month (ตัวแปรที่รับเข้าฟังก์ชัน) แทนการใช้ t.month
-            let monthName = "";
-            if (month && month.includes('-')) { 
-                const mPart = parseInt(month.split('-')[1]); 
-                monthName = monthsTh[mPart - 1]; 
-            }
-            
-            let dueDisplay = `${dayNum} ${monthName}`; 
-            if (!monthName) dueDisplay = dayNum;
-            // ------------------------------------------------------------
-
-            return `<div class="card-debt mb-1 ${isPaid ? 'paid' : ''} shadow-md flex justify-between items-center px-3 py-2"><div class="flex-1"><div class="flex justify-between items-center mb-1"><span class="text-[11px] font-bold text-white uppercase truncate pr-2">${safeEsc(t.card)}</span><span class="text-[9px] text-gray-300 italic shrink-0">กำหนดจ่าย: ${dueDisplay}</span></div><div class="flex items-start justify-between"><div><p class="text-sm font-bold ${isPaid ? 'line-through opacity-50 text-gray-400' : 'text-red-500'}">฿${total.toLocaleString()}</p>${!isPaid && minPay > 0 ? `<p class="text-[9px] text-orange-300 mt-0.5">(ขั้นต่ำ: ฿${minPay.toLocaleString()})</p>` : ''}</div><div class="flex flex-col items-end">${paid > 0 ? `<p class="text-[9px] text-green-400 font-bold">Paid: ฿${paid.toLocaleString()}</p>` : ''}</div></div></div><div class="flex items-center gap-3 ml-3"><button onclick="payPrompt(${t.rowIndex},'${total}','${paid}','${safeEsc(t.card)}',${isPaid})" class="${isPaid ? 'bg-blue-600' : 'bg-green-600'} text-white ${isPaid ? 'w-6 h-6' : 'px-3 py-1 text-[10px]'} flex items-center justify-center rounded-lg font-bold shadow-sm transition hover:scale-105 active:scale-95">${isPaid ? '✔' : 'จ่าย'}</button><input type="checkbox" class="debt-cb custom-checkbox" value="${t.rowIndex}" onchange="updateDelBtn('debt-cb', 'btnDelSelectedDebt')"></div></div>`;
-        }).join('');
-    } catch (e) { console.error("renderDebtList Error:", e); }
-}
+                let html = '';
+                for (const b in grouped) {
+                    html += `<div class="mb-3"><div class="text-[9px] text-gray-500 font-bold mb-1 ml-1 border-l-2 border-orange-500 pl-2 uppercase">${b}</div>`;
+                    grouped[b].forEach(c => {
+                        const cName = safeStr(c.name);
+                        const id = btoa(unescape(encodeURIComponent(cName))).replace(/=/g, "");
+                        html += `<div class="quick-card quick-card-item mb-1.5" data-id="${id}" data-name="${safeEsc(cName)}"><div class="quick-card-title">${cName}</div><div class="form-single-row"><input type="text" id="tot-${id}" placeholder="ยอด" class="input-compact font-bold tot-input-check" oninput="formatCurrency(this)"><input type="text" id="min-${id}" placeholder="ขั้นต่ำ" class="input-compact" oninput="formatCurrency(this)"><input type="text" id="due-${id}" placeholder="วันที่" class="input-compact text-center" maxlength="2"><select id="target-${id}" class="input-compact"><option value="current">${currMonthName}</option><option value="next">${nextMonthName}</option></select><div onclick="saveQuick('${safeEsc(cName)}', '${id}')" class="btn-check-compact bg-orange-600">✔</div></div></div>`;
+                    }); html += `</div>`;
+                }
+                document.getElementById('quickAddList').innerHTML = html || '<p class="text-center text-gray-500 text-[10px] py-4 italic">บันทึกครบถ้วน ✨</p>';
+            } catch(e) { console.error("Quick Add Error", e); }
+        }
         async function saveQuick(card, id) {
             const tot = document.getElementById(`tot-${id}`).value.replace(/,/g, '');
             let min = document.getElementById(`min-${id}`).value.replace(/,/g, '') || tot;
