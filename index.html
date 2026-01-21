@@ -13,6 +13,7 @@
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body { font-family: 'Kanit', sans-serif; background-color: #0f172a; color: #e2e8f0; user-select: none; }
         .app-card { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 1.5rem; transition: all 0.2s ease; cursor: pointer; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
@@ -23,10 +24,12 @@
         #pin-overlay { position: fixed; inset: 0; background: #0f172a; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.3s; }
         .pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #475569; transition: all 0.2s; margin: 0 8px; }
         .pin-dot.filled { background: #f97316; border-color: #f97316; box-shadow: 0 0 10px rgba(249, 115, 22, 0.5); }
+        .pin-dot.checking { background: #3b82f6; border-color: #3b82f6; animation: pulse 1s infinite; }
         .numpad-btn { width: 70px; height: 70px; border-radius: 50%; background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); color: white; font-size: 24px; font-weight: 500; display: flex; align-items: center; justify-content: center; transition: all 0.1s; cursor: pointer; margin: 10px; }
         .numpad-btn:active { background: rgba(249, 115, 22, 0.2); border-color: #f97316; transform: scale(0.9); }
         .shake { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
 </head>
 <body class="p-5 max-w-lg mx-auto">
@@ -37,7 +40,7 @@
                 <span class="text-3xl">🔒</span>
             </div>
             <h2 class="text-xl font-bold text-white mb-1">GBASE LOGIN</h2>
-            <p class="text-gray-500 text-xs tracking-widest uppercase">Security Access</p>
+            <p class="text-gray-500 text-xs tracking-widest uppercase">Secured Server Access</p>
         </div>
 
         <div class="flex mb-12" id="pin-dots">
@@ -76,24 +79,24 @@
 
    <nav class="grid grid-cols-2 gap-4">
         
-        <a href="debt.html" class="app-card p-6 shadow-lg border border-gray-700/50 hover:border-gray-500 transition">
-    <div class="w-14 h-14 bg-orange-500/10 rounded-2xl flex items-center justify-center mb-3">
-        <span class="text-3xl">💳</span> 
-    </div>
-    <span class="text-sm font-semibold text-white">Debt<br>Manager</span>
-</a>
+        <a href="debt" class="app-card p-6 shadow-lg border border-gray-700/50 hover:border-gray-500 transition">
+            <div class="w-14 h-14 bg-orange-500/10 rounded-2xl flex items-center justify-center mb-3">
+                <span class="text-3xl">💳</span> 
+            </div>
+            <span class="text-sm font-semibold text-white">Debt<br>Manager</span>
+        </a>
 
-        <div class="app-card p-6 opacity-40 grayscale">
+        <div class="app-card p-6 opacity-40 grayscale cursor-not-allowed">
             <div class="w-14 h-14 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-3"><span class="text-3xl">📝</span></div>
             <span class="text-sm font-semibold text-white">Daily<br>Notes</span>
         </div>
         
-        <a href="fitness.html" class="app-card p-6 shadow-lg border border-gray-700/50 hover:border-gray-500 transition">
+        <a href="fitness" class="app-card p-6 shadow-lg border border-gray-700/50 hover:border-gray-500 transition">
             <div class="w-14 h-14 bg-green-500/10 rounded-2xl flex items-center justify-center mb-3"><span class="text-3xl">💪</span></div>
             <span class="text-sm font-semibold text-white">Iron Log<br>Fitness</span>
         </a>
 
-        <a href="settings.html" class="app-card p-6 shadow-lg border border-gray-700/50 hover:border-gray-500 transition">
+        <a href="settings" class="app-card p-6 shadow-lg border border-gray-700/50 hover:border-gray-500 transition">
             <div class="w-14 h-14 bg-gray-500/10 rounded-2xl flex items-center justify-center mb-3"><span class="text-3xl">⚙️</span></div>
             <span class="text-sm font-semibold text-white">System<br>Settings</span>
         </a>
@@ -120,7 +123,8 @@
                 pinBuffer += num;
                 updateDots();
                 if (pinBuffer.length === 4) {
-                    setTimeout(checkPin, 100);
+                    // หน่วงเวลานิดนึงเพื่อให้เห็นจุดสุดท้ายก่อนส่ง
+                    setTimeout(checkPinSecure, 50);
                 }
             }
         }
@@ -133,26 +137,62 @@
         function updateDots() {
             const dots = document.querySelectorAll('.pin-dot');
             dots.forEach((dot, index) => {
+                dot.classList.remove('checking'); // เอาสถานะ checking ออกก่อน
                 if (index < pinBuffer.length) dot.classList.add('filled');
                 else dot.classList.remove('filled');
             });
         }
 
-        function checkPin() {
-            const storedPin = localStorage.getItem('gbase_pin') || '8896';
-            if (pinBuffer === storedPin) {
-                sessionStorage.setItem('gbase_unlocked', 'true');
-                loadUserData();
-                const overlay = document.getElementById('pin-overlay');
-                overlay.style.opacity = '0';
-                setTimeout(() => { overlay.style.display = 'none'; }, 300);
-            } else {
-                const dots = document.getElementById('pin-dots');
-                dots.classList.add('shake');
+        // 🟢 ฟังก์ชันใหม่: เช็ค PIN กับ Server
+        async function checkPinSecure() {
+            // เปลี่ยนสีจุดเป็นสีฟ้า เพื่อบอกว่ากำลังโหลด
+            const dots = document.querySelectorAll('.pin-dot');
+            dots.forEach(d => d.classList.add('checking'));
+
+            try {
+                const res = await fetch(CONFIG.SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'login',
+                        password: pinBuffer
+                    })
+                });
+                
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    // Login ผ่าน
+                    sessionStorage.setItem('gbase_unlocked', 'true');
+                    loadUserData();
+                    const overlay = document.getElementById('pin-overlay');
+                    overlay.style.opacity = '0';
+                    setTimeout(() => { overlay.style.display = 'none'; }, 300);
+                } else {
+                    throw new Error('Wrong password');
+                }
+            } catch (e) {
+                // Login ไม่ผ่าน: สั่นและเคลียร์
+                const pinContainer = document.getElementById('pin-dots');
+                pinContainer.classList.add('shake');
+                
+                // คืนค่าสีจุด
+                dots.forEach(d => d.classList.remove('checking'));
+
                 setTimeout(() => {
-                    dots.classList.remove('shake');
+                    pinContainer.classList.remove('shake');
                     clearPin();
-                }, 300);
+                    // แจ้งเตือนเล็กน้อย (Optional)
+                    Swal.fire({
+                        toast: true,
+                        position: 'top',
+                        icon: 'error',
+                        title: 'รหัสไม่ถูกต้อง',
+                        showConfirmButton: false,
+                        timer: 1500,
+                        background: '#1e293b',
+                        color: '#fff'
+                    });
+                }, 400);
             }
         }
 
@@ -173,11 +213,13 @@
         });
 
         window.onload = async function() {
+            // ถ้าเคยล็อกอินแล้ว ไม่ต้องโชว์ PIN
             if (sessionStorage.getItem('gbase_unlocked') === 'true') {
                 loadUserData(); 
                 document.getElementById('pin-overlay').style.display = 'none';
             }
 
+            // โหลดข้อมูล Username/Subtitle มาแสดง (แต่ไม่โหลด PIN มาเก็บแล้ว)
             try {
                 if (typeof CONFIG === 'undefined' || !CONFIG.SCRIPT_URL) return;
                 const res = await fetch(CONFIG.SCRIPT_URL + '?get=settings');
@@ -195,9 +237,8 @@
                     }
                     localStorage.setItem('gbase_subtitle', data.subtitle);
                 }
-                if (data.pin) {
-                    localStorage.setItem('gbase_pin', data.pin);
-                }
+                // ⚠️ เอาบรรทัดเก็บ PIN ออกเพื่อความปลอดภัย
+                // localStorage.setItem('gbase_pin', data.pin); 
             } catch (e) {
                 console.log("Offline mode or API error");
             }
