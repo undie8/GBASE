@@ -28,36 +28,80 @@
     </div>
 
     <div class="max-w-md mx-auto pt-24 px-5">
+
         <div class="flex bg-slate-800/50 p-1.5 rounded-2xl mb-8 border border-slate-700/50">
-            <button onclick="switchTab('weight')" id="tabWeight" class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg bg-slate-700 text-white"><i class="fas fa-weight-scale mr-2"></i>น้ำหนัก</button>
-            <button onclick="switchTab('photo')" id="tabPhoto" class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-400 hover:text-slate-200"><i class="fas fa-images mr-2"></i>แกลเลอรี่</button>
+            <button onclick="switchTab('weight')" id="tabWeight" class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg bg-slate-700 text-white">
+                <i class="fas fa-weight-scale mr-2"></i>น้ำหนัก
+            </button>
+            <button onclick="switchTab('photo')" id="tabPhoto" class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-400 hover:text-slate-200">
+                <i class="fas fa-images mr-2"></i>แกลเลอรี่
+            </button>
         </div>
 
         <div id="sectionWeight" class="space-y-6">
             <div class="glass-panel p-5 rounded-3xl shadow-2xl relative overflow-hidden">
                 <div class="flex justify-between items-end mb-4 relative z-10">
-                    <div><p class="text-xs text-slate-400 uppercase tracking-wider font-bold">น้ำหนักปัจจุบัน</p><h2 id="currentWeightDisplay" class="text-3xl font-bold text-white mt-1">--.-- <span class="text-sm text-slate-500 font-normal">kg</span></h2></div>
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase tracking-wider font-bold">น้ำหนักปัจจุบัน</p>
+                        <h2 id="currentWeightDisplay" class="text-3xl font-bold text-white mt-1">--.-- <span class="text-sm text-slate-500 font-normal">kg</span></h2>
+                    </div>
                 </div>
-                <div class="h-48 w-full relative z-10"><canvas id="weightChart"></canvas></div>
+                <div class="h-48 w-full relative z-10">
+                    <canvas id="weightChart"></canvas>
+                </div>
             </div>
+
             <div class="glass-panel p-5 rounded-3xl shadow-lg">
                 <div class="flex gap-4 mb-4">
-                    <div class="flex-1"><label class="text-[10px] text-slate-400 uppercase font-bold mb-1 block pl-1">วันที่บันทึก</label><input type="date" id="weightDate" class="w-full bg-slate-800/50 border border-slate-600 rounded-xl p-3 text-white text-sm outline-none focus:border-green-500 transition"></div>
-                    <div class="w-28"><label class="text-[10px] text-slate-400 uppercase font-bold mb-1 block pl-1">น้ำหนัก (Kg)</label><input type="number" id="weightVal" step="0.01" placeholder="0.00" class="w-full bg-slate-800/50 border border-slate-600 rounded-xl p-3 text-white text-center font-bold text-lg outline-none focus:border-green-500 transition"></div>
+                    <div class="flex-1">
+                        <label class="text-[10px] text-slate-400 uppercase font-bold mb-1 block pl-1">วันที่บันทึก</label>
+                        <input type="date" id="weightDate" class="w-full bg-slate-800/50 border border-slate-600 rounded-xl p-3 text-white text-sm outline-none focus:border-green-500 transition">
+                    </div>
+                    <div class="w-28">
+                        <label class="text-[10px] text-slate-400 uppercase font-bold mb-1 block pl-1">น้ำหนัก (Kg)</label>
+                        <input type="number" id="weightVal" step="0.01" placeholder="0.00" class="w-full bg-slate-800/50 border border-slate-600 rounded-xl p-3 text-white text-center font-bold text-lg outline-none focus:border-green-500 transition">
+                    </div>
                 </div>
-                <button onclick="saveWeight()" id="btnSaveWeight" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-green-900/40 transition-all active:scale-95 flex justify-center items-center gap-2"><i class="fas fa-save"></i> บันทึกข้อมูล</button>
+                <button onclick="saveWeight()" id="btnSaveWeight" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-green-900/40 transition-all active:scale-95 flex justify-center items-center gap-2">
+                    <i class="fas fa-save"></i> บันทึกข้อมูล
+                </button>
             </div>
-            <div><h3 class="text-sm font-bold text-slate-400 mb-4 px-2">ประวัติย้อนหลัง</h3><div id="weightList" class="space-y-3"><div class="text-center py-10 text-slate-600 animate-pulse">กำลังโหลดข้อมูล...</div></div></div>
+
+            <div>
+                <h3 class="text-sm font-bold text-slate-400 mb-4 px-2">ประวัติย้อนหลัง</h3>
+                <div id="weightList" class="space-y-3">
+                    <div class="text-center py-10 text-slate-600 animate-pulse">กำลังโหลดข้อมูล...</div>
+                </div>
+            </div>
         </div>
 
         <div id="sectionPhoto" class="hidden space-y-6">
             <div class="glass-panel p-5 rounded-3xl border-dashed border-2 border-slate-700 hover:border-slate-500 transition group relative">
                 <input type="file" id="photoInput" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewUpload()">
-                <div class="text-center py-6" id="uploadPlaceholder"><div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3 text-green-500 group-hover:scale-110 transition shadow-inner"><i class="fas fa-camera text-2xl"></i></div><p class="text-sm text-slate-300 font-bold">แตะเพื่อเลือกรูปภาพ</p><p class="text-xs text-slate-500 mt-1">บันทึกพัฒนาการรูปร่างของคุณ</p></div>
-                <div id="uploadPreview" class="hidden"><img id="imgPreview" class="w-full h-48 object-cover rounded-xl mb-3 shadow-lg"><div class="flex gap-3"><input type="date" id="photoDate" class="flex-1 bg-slate-800 p-2 rounded-lg text-xs text-white border border-slate-600"><input type="number" id="photoWeight" placeholder="นน." class="w-20 bg-slate-800 p-2 rounded-lg text-xs text-white text-center border border-slate-600 font-bold"></div><div class="flex gap-2 mt-3 relative z-20"><button onclick="uploadPhoto()" id="btnUploadConfirm" class="flex-1 bg-green-600 text-white py-2 rounded-lg text-sm font-bold shadow-lg">อัปโหลดเลย</button><button onclick="cancelUpload()" class="px-4 bg-slate-700 text-white py-2 rounded-lg text-sm">ยกเลิก</button></div></div>
+                <div class="text-center py-6" id="uploadPlaceholder">
+                    <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3 text-green-500 group-hover:scale-110 transition shadow-inner">
+                        <i class="fas fa-camera text-2xl"></i>
+                    </div>
+                    <p class="text-sm text-slate-300 font-bold">แตะเพื่อเลือกรูปภาพ</p>
+                    <p class="text-xs text-slate-500 mt-1">บันทึกพัฒนาการรูปร่างของคุณ</p>
+                </div>
+                <div id="uploadPreview" class="hidden">
+                    <img id="imgPreview" class="w-full h-48 object-cover rounded-xl mb-3 shadow-lg">
+                    <div class="flex gap-3">
+                        <input type="date" id="photoDate" class="flex-1 bg-slate-800 p-2 rounded-lg text-xs text-white border border-slate-600">
+                        <input type="number" id="photoWeight" placeholder="นน." class="w-20 bg-slate-800 p-2 rounded-lg text-xs text-white text-center border border-slate-600 font-bold">
+                    </div>
+                    <div class="flex gap-2 mt-3 relative z-20">
+                        <button onclick="uploadPhoto()" id="btnUploadConfirm" class="flex-1 bg-green-600 text-white py-2 rounded-lg text-sm font-bold shadow-lg">อัปโหลดเลย</button>
+                        <button onclick="cancelUpload()" class="px-4 bg-slate-700 text-white py-2 rounded-lg text-sm">ยกเลิก</button>
+                    </div>
+                </div>
             </div>
-            <div id="galleryGrid" class="grid grid-cols-1 gap-6"></div>
+
+            <div id="galleryGrid" class="grid grid-cols-1 gap-6">
+                </div>
         </div>
+
     </div>
 
     <script>
@@ -65,7 +109,9 @@
         let globalWeights = [];
         let chartInstance = null;
 
-        window.onload = () => {
+        // --- GLOBAL SCOPE FUNCTIONS (เพื่อให้ HTML เรียกใช้ได้) ---
+        
+        window.onload = function() {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('weightDate').value = today;
             document.getElementById('photoDate').value = today;
@@ -73,8 +119,11 @@
         };
 
         function switchTab(tab) {
-            const wSec = document.getElementById('sectionWeight'); const pSec = document.getElementById('sectionPhoto');
-            const wTab = document.getElementById('tabWeight'); const pTab = document.getElementById('tabPhoto');
+            const wSec = document.getElementById('sectionWeight');
+            const pSec = document.getElementById('sectionPhoto');
+            const wTab = document.getElementById('tabWeight');
+            const pTab = document.getElementById('tabPhoto');
+
             if (tab === 'weight') {
                 wSec.classList.remove('hidden'); pSec.classList.add('hidden');
                 wTab.className = "flex-1 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg bg-slate-700 text-white";
@@ -91,26 +140,52 @@
             try {
                 const res = await fetch(`${API_URL}?get=fitnessData&t=${new Date().getTime()}`);
                 const data = await res.json();
+                
                 globalWeights = data.weights || [];
-                renderWeightList(); renderChart(); renderGallery(data.gallery || []);
+                renderWeightList();
+                renderChart();
+                renderGallery(data.gallery || []);
+
                 if (globalWeights.length > 0) {
                     const latest = globalWeights[0];
                     document.getElementById('currentWeightDisplay').innerHTML = `${parseFloat(latest.value).toFixed(2)} <span class="text-sm text-slate-500 font-normal">kg</span>`;
-                    if (document.getElementById('photoDate').value === new Date().toISOString().split('T')[0]) { document.getElementById('photoWeight').value = latest.value; }
+                    
+                    if (document.getElementById('photoDate').value === new Date().toISOString().split('T')[0]) {
+                        document.getElementById('photoWeight').value = latest.value;
+                    }
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error(e);
+            }
         }
 
         function renderGallery(gallery) {
-            const grid = document.getElementById('galleryGrid'); grid.innerHTML = '';
-            if (gallery.length === 0) { grid.innerHTML = '<div class="text-center text-slate-600 py-10">ยังไม่มีรูปภาพ</div>'; return; }
+            const grid = document.getElementById('galleryGrid');
+            grid.innerHTML = '';
+            
+            if (gallery.length === 0) {
+                grid.innerHTML = '<div class="text-center text-slate-600 py-10">ยังไม่มีรูปภาพ</div>';
+                return;
+            }
+
             gallery.forEach(img => {
                 const weightTag = img.weight ? `<div class="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg text-xs font-bold text-white border border-white/10"><i class="fas fa-weight-hanging mr-1 text-green-400"></i>${img.weight}</div>` : '';
-                // 🟢 แก้ไข: ลบ crossorigin ออก + แก้ปุ่มลบให้ส่ง fileId
+                
+                // 🟢 วิธีใหม่: สร้าง URL Thumbnail จาก File ID (แก้รูปแตก 100%)
+                // ถ้ามี fileId ให้ใช้ลิงก์ thumbnail?id=... ถ้าไม่มีให้ใช้ url เดิม
+                let displayUrl = img.url;
+                if (img.fileId) {
+                    displayUrl = `https://drive.google.com/thumbnail?id=${img.fileId}&sz=w800`;
+                }
+
                 grid.innerHTML += `
                     <div class="glass-panel rounded-2xl overflow-hidden relative group">
                         <div class="relative min-h-[250px] bg-slate-800">
-                             <img src="${img.url}" class="w-full h-auto object-cover" loading="lazy" referrerpolicy="no-referrer" onerror="this.src='https://placehold.co/600x400?text=Image+Error'">
+                             <img src="${displayUrl}" 
+                                  class="w-full h-auto object-cover" 
+                                  loading="lazy" 
+                                  referrerpolicy="no-referrer"
+                                  onerror="this.src='https://placehold.co/600x400?text=Image+Load+Error'">
                              ${weightTag}
                         </div>
                         <div class="p-3 bg-slate-900/80 backdrop-blur flex justify-between items-center">
@@ -121,37 +196,107 @@
             });
         }
 
-        // 🟢 เพิ่มฟังก์ชัน deletePhoto
+        // 🟢 ฟังก์ชันลบรูป (ประกาศไว้ข้างนอกให้เรียกใช้ได้)
         async function deletePhoto(fileId) {
-            const res = await Swal.fire({ title: 'ลบรูปภาพ?', text: "ต้องการลบรูปนี้ใช่ไหม", icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'ลบ', cancelButtonText: 'ยกเลิก', background: '#1e293b', color: '#fff' });
-            if (res.isConfirmed) {
+            if(!fileId || fileId === 'undefined') {
+                Swal.fire('Error', 'ไม่พบ ID ของไฟล์', 'error');
+                return;
+            }
+            
+            const result = await Swal.fire({
+                title: 'ลบรูปภาพ?',
+                text: "รูปนี้จะถูกลบถาวร",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'ลบเลย',
+                cancelButtonText: 'ยกเลิก',
+                background: '#1e293b',
+                color: '#fff'
+            });
+
+            if (result.isConfirmed) {
                 try {
-                    await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'deletePhoto', fileId: fileId }) });
-                    loadData();
-                } catch(e) { Swal.fire('Error', e.message, 'error'); }
+                    await fetch(API_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'deletePhoto', fileId: fileId })
+                    });
+                    await loadData(); // โหลดข้อมูลใหม่หลังลบ
+                    Swal.fire({ title: 'ลบแล้ว', icon: 'success', toast: true, position: 'top', timer: 1500, showConfirmButton: false });
+                } catch(e) {
+                    Swal.fire('Error', e.message, 'error');
+                }
             }
         }
 
+        // --- Chart & Other Functions ---
         function renderChart() {
             const ctx = document.getElementById('weightChart').getContext('2d');
             const chartData = [...globalWeights].slice(0, 10).reverse();
+            const labels = chartData.map(d => { const date = new Date(d.date); return `${date.getDate()}/${date.getMonth()+1}`; });
+            const values = chartData.map(d => d.value);
+
             if (chartInstance) chartInstance.destroy();
-            chartInstance = new Chart(ctx, { type: 'line', data: { labels: chartData.map(d => { const date = new Date(d.date); return `${date.getDate()}/${date.getMonth()+1}`; }), datasets: [{ label: 'Weight', data: chartData.map(d => d.value), borderColor: '#4ade80', borderWidth: 3, backgroundColor: (ctx) => { const g = ctx.chart.ctx.createLinearGradient(0,0,0,400); g.addColorStop(0,'rgba(34,197,94,0.5)'); g.addColorStop(1,'rgba(34,197,94,0.0)'); return g; }, fill: true, pointBackgroundColor: '#fff', pointBorderColor: '#4ade80', pointRadius: 4, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8' } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } } } });
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Weight', data: values, borderColor: '#4ade80', borderWidth: 3,
+                        backgroundColor: (context) => {
+                            const ctx = context.chart.ctx;
+                            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                            gradient.addColorStop(0, 'rgba(34, 197, 94, 0.5)');
+                            gradient.addColorStop(1, 'rgba(34, 197, 94, 0.0)');
+                            return gradient;
+                        },
+                        fill: true, pointBackgroundColor: '#fff', pointBorderColor: '#4ade80', pointRadius: 4, tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                    scales: { y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8' } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } }
+                }
+            });
         }
+
         function renderWeightList() {
-            const list = document.getElementById('weightList'); list.innerHTML = '';
+            const list = document.getElementById('weightList');
+            list.innerHTML = '';
             if (globalWeights.length === 0) { list.innerHTML = '<div class="text-center text-slate-600 py-6">ยังไม่มีข้อมูล</div>'; return; }
             globalWeights.forEach((item, index) => {
                 let diffHtml = '<span class="text-slate-600 text-xs">-</span>';
-                if (index < globalWeights.length - 1) { const diff = parseFloat(item.value) - parseFloat(globalWeights[index+1].value); if (diff > 0) diffHtml = `<span class="text-red-400 text-xs font-bold"><i class="fas fa-caret-up"></i> +${diff.toFixed(2)}</span>`; else if (diff < 0) diffHtml = `<span class="text-green-400 text-xs font-bold"><i class="fas fa-caret-down"></i> ${diff.toFixed(2)}</span>`; }
+                if (index < globalWeights.length - 1) {
+                    const diff = parseFloat(item.value) - parseFloat(globalWeights[index+1].value);
+                    if (diff > 0) diffHtml = `<span class="text-red-400 text-xs font-bold"><i class="fas fa-caret-up"></i> +${diff.toFixed(2)}</span>`;
+                    else if (diff < 0) diffHtml = `<span class="text-green-400 text-xs font-bold"><i class="fas fa-caret-down"></i> ${diff.toFixed(2)}</span>`;
+                }
                 list.innerHTML += `<div class="glass-panel p-4 rounded-2xl flex justify-between items-center group"><div class="flex items-center gap-4"><div class="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center border border-slate-700 shadow-inner"><span class="text-white font-bold text-sm">${parseFloat(item.value).toFixed(1)}</span></div><div><div class="text-sm text-slate-300 font-bold">${formatDate(item.date)}</div><div class="mt-0.5">${diffHtml}</div></div></div><button onclick="deleteWeight('${item.date}')" class="w-8 h-8 rounded-full bg-slate-800 text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition flex items-center justify-center"><i class="fas fa-trash-alt text-xs"></i></button></div>`;
             });
         }
+
         function previewUpload() { const input = document.getElementById('photoInput'); if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = (e) => { document.getElementById('imgPreview').src = e.target.result; document.getElementById('uploadPlaceholder').classList.add('hidden'); document.getElementById('uploadPreview').classList.remove('hidden'); }; reader.readAsDataURL(input.files[0]); } }
         function cancelUpload() { document.getElementById('photoInput').value = ''; document.getElementById('uploadPlaceholder').classList.remove('hidden'); document.getElementById('uploadPreview').classList.add('hidden'); }
-        async function saveWeight() { const btn = document.getElementById('btnSaveWeight'); btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังบันทึก...'; try { await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveWeight', date: document.getElementById('weightDate').value, weight: document.getElementById('weightVal').value }) }); await loadData(); Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', toast: true, position: 'top', timer: 1500, showConfirmButton: false }); } catch(e) { Swal.fire('Error', e.message, 'error'); } finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> บันทึกข้อมูล'; } }
-        async function uploadPhoto() { const btn = document.getElementById('btnUploadConfirm'); btn.innerText = 'กำลังส่ง...'; btn.disabled = true; const file = document.getElementById('photoInput').files[0]; const reader = new FileReader(); reader.onload = async (e) => { try { await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'uploadPhoto', date: document.getElementById('photoDate').value, weight: document.getElementById('photoWeight').value, image: e.target.result }) }); cancelUpload(); await loadData(); Swal.fire({ icon: 'success', title: 'อัปโหลดเรียบร้อย', toast: true, position: 'top', timer: 1500, showConfirmButton: false }); } catch(err) { Swal.fire('Error', err.message, 'error'); } }; reader.readAsDataURL(file); }
-        async function deleteWeight(date) { const res = await Swal.fire({ title: 'ลบข้อมูล?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'ลบ', background:'#1e293b', color:'#fff' }); if (res.isConfirmed) { await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteWeight', date: date }) }); loadData(); } }
+
+        async function saveWeight() {
+            const btn = document.getElementById('btnSaveWeight'); btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังบันทึก...';
+            try { await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveWeight', date: document.getElementById('weightDate').value, weight: document.getElementById('weightVal').value }) }); await loadData(); Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', toast: true, position: 'top', timer: 1500, showConfirmButton: false }); } catch(e) { Swal.fire('Error', e.message, 'error'); } finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> บันทึกข้อมูล'; }
+        }
+
+        async function uploadPhoto() {
+            const btn = document.getElementById('btnUploadConfirm'); btn.innerText = 'กำลังส่ง...'; btn.disabled = true;
+            const file = document.getElementById('photoInput').files[0]; const reader = new FileReader();
+            reader.onload = async (e) => {
+                try { await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'uploadPhoto', date: document.getElementById('photoDate').value, weight: document.getElementById('photoWeight').value, image: e.target.result }) }); cancelUpload(); await loadData(); Swal.fire({ icon: 'success', title: 'อัปโหลดเรียบร้อย', toast: true, position: 'top', timer: 1500, showConfirmButton: false }); } catch(err) { Swal.fire('Error', err.message, 'error'); }
+            }; reader.readAsDataURL(file);
+        }
+
+        async function deleteWeight(date) {
+            const res = await Swal.fire({ title: 'ลบข้อมูล?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'ลบ', background:'#1e293b', color:'#fff' });
+            if (res.isConfirmed) { await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteWeight', date: date }) }); loadData(); }
+        }
+
         function formatDate(d) { return new Date(d).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }); }
     </script>
 </body>
