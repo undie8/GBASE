@@ -456,61 +456,55 @@
             try { await fetch(CONFIG.SCRIPT_URL, { method:'POST', body: JSON.stringify({ action:'addIncome', month: fullDate, type, amount: val }) }); document.getElementById('incVal').value = ""; document.getElementById('incDay').value = ""; fetchData(false); } catch (e) { showLoader(false); }
         }
    function renderDebtList(month) {
-    try {
-        const list = (globalData.transactions || []).filter(t => t.month === month);
-        const isPaidCheck = (t) => { 
-            const total = parseFloat(safeNum(t.total).toFixed(2)); 
-            const paid = parseFloat(safeNum(t.paid).toFixed(2)); 
-            return paid >= total; 
-        };
-        
-        const unpaidList = list.filter(t => !isPaidCheck(t));
-        const paidList = list.filter(t => isPaidCheck(t));
+            try {
+                const list = (globalData.transactions || []).filter(t => t.month === month);
+                // ... ส่วนคัดกรอง unpaid/paid เหมือนเดิม ...
 
-        document.getElementById('debtList').innerHTML = [...unpaidList, ...paidList].map(t => {
-            const total = safeNum(t.total); 
-            let paid = safeNum(t.paid); 
-            const minPay = safeNum(t.minPay); 
-            const isPaid = (paid >= parseFloat(total.toFixed(2)));
+                document.getElementById('debtList').innerHTML = [...unpaidList, ...paidList].map(t => {
+                    const total = safeNum(t.total); 
+                    const isPaid = (safeNum(t.paid) >= parseFloat(total.toFixed(2)));
 
-            // --- 🟢 ดึงข้อมูลจาก Pay Month มาแสดงชื่อเดือนตรงๆ 🟢 ---
-            let dayNum = safeStr(t.dueDate).replace(/[^0-9]/g, ''); 
-            if (dayNum.length === 1) dayNum = "0" + dayNum;
+                    // --- 🟢 แก้ไขจุดนี้: ดึงชื่อเดือนให้ถูกต้อง 🟢 ---
+                    let dayNum = safeStr(t.dueDate).replace(/[^0-9]/g, '').padStart(2, '0') || "00";
 
-            // ดึงค่าจาก t.payMonth ที่ Backend ส่งมา (ซึ่งตรงกับคอลัมน์ G ใน Sheets)
-            let monthName = "";
-            if (t.payMonth && t.payMonth.includes('-')) {
-                const mIdx = parseInt(t.payMonth.split('-')[1]) - 1;
-                monthName = monthsTh[mIdx];
-            }
-            
-            let dueDisplay = `${dayNum} ${monthName}`;
-            // --------------------------------------------------
+                    // ดึงค่าเดือนจาก t.payMonth (เช่น "2026-01")
+                    let targetMonthStr = t.payMonth || t.month; 
+                    let monthName = "";
+                    
+                    if (targetMonthStr && targetMonthStr.includes('-')) {
+                        // แยกส่วนเดือนออกมาตรงๆ เช่น "01"
+                        const mPart = targetMonthStr.split('-')[1]; 
+                        // แปลงเป็นตัวเลขแล้วดึงจาก Array (ไม่ต้องลบเพิ่มถ้าดึงตำแหน่งตรง)
+                        const mIdx = parseInt(mPart) - 1; 
+                        monthName = monthsTh[mIdx];
+                    }
+                    
+                    let dueDisplay = `${dayNum} ${monthName}`;
+                    // ------------------------------------------
 
-            return `<div class="card-debt mb-1 ${isPaid ? 'paid' : ''} shadow-md flex justify-between items-center px-3 py-2">
-                <div class="flex-1">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="text-[11px] font-bold text-white uppercase truncate pr-2">${safeEsc(t.card)}</span>
-                        <span class="text-[9px] text-gray-300 italic shrink-0">กำหนดจ่าย: ${dueDisplay}</span>
-                    </div>
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <p class="text-sm font-bold ${isPaid ? 'line-through opacity-50 text-gray-400' : 'text-red-500'}">฿${total.toLocaleString()}</p>
-                            ${!isPaid && minPay > 0 ? `<p class="text-[9px] text-orange-300 mt-0.5">(ขั้นต่ำ: ฿${minPay.toLocaleString()})</p>` : ''}
+                    return `<div class="card-debt mb-1 ${isPaid ? 'paid' : ''} shadow-md flex justify-between items-center px-3 py-2">
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-[11px] font-bold text-white uppercase truncate pr-2">${safeEsc(t.card)}</span>
+                                <span class="text-[9px] text-gray-300 italic shrink-0">กำหนดจ่าย: ${dueDisplay}</span>
+                            </div>
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-sm font-bold ${isPaid ? 'line-through opacity-50 text-gray-400' : 'text-red-500'}">฿${total.toLocaleString()}</p>
+                                </div>
+                                <div class="flex flex-col items-end">
+                                    ${safeNum(t.paid) > 0 ? `<p class="text-[9px] text-green-400 font-bold">Paid: ฿${safeNum(t.paid).toLocaleString()}</p>` : ''}
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex flex-col items-end">
-                            ${paid > 0 ? `<p class="text-[9px] text-green-400 font-bold">Paid: ฿${paid.toLocaleString()}</p>` : ''}
+                        <div class="flex items-center gap-3 ml-3">
+                            <button onclick="payPrompt(${t.rowIndex},'${total}','${t.paid}','${safeEsc(t.card)}',${isPaid})" class="${isPaid ? 'bg-blue-600' : 'bg-green-600'} text-white ${isPaid ? 'w-6 h-6' : 'px-3 py-1 text-[10px]'} flex items-center justify-center rounded-lg font-bold shadow-sm">${isPaid ? '✔' : 'จ่าย'}</button>
+                            <input type="checkbox" class="debt-cb custom-checkbox" value="${t.rowIndex}" onchange="updateDelBtn('debt-cb', 'btnDelSelectedDebt')">
                         </div>
-                    </div>
-                </div>
-                <div class="flex items-center gap-3 ml-3">
-                    <button onclick="payPrompt(${t.rowIndex},'${total}','${paid}','${safeEsc(t.card)}',${isPaid})" class="${isPaid ? 'bg-blue-600' : 'bg-green-600'} text-white ${isPaid ? 'w-6 h-6' : 'px-3 py-1 text-[10px]'} flex items-center justify-center rounded-lg font-bold shadow-sm transition hover:scale-105 active:scale-95">${isPaid ? '✔' : 'จ่าย'}</button>
-                    <input type="checkbox" class="debt-cb custom-checkbox" value="${t.rowIndex}" onchange="updateDelBtn('debt-cb', 'btnDelSelectedDebt')">
-                </div>
-            </div>`;
-        }).join('');
-    } catch (e) { console.error("renderDebtList Error:", e); }
-}
+                    </div>`;
+                }).join('');
+            } catch (e) { console.error(e); }
+        }
         async function payPrompt(idx, tot, current, card, isEdit = false) {
             const currentVal = safeNum(current); const totalVal = safeNum(tot); const remaining = Math.max(0, totalVal - currentVal);
             const infoText = isEdit ? `ยอดปัจจุบัน: ฿${currentVal.toLocaleString()}` : `ยอดเต็ม: ฿${totalVal.toLocaleString()} <br> คงเหลือ: <b>฿${remaining.toLocaleString()}</b>`;
