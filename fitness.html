@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Iron Log</title>
     
+    <script>
+        if (window.location.pathname.endsWith('.html')) {
+            var newUrl = window.location.pathname.replace('.html', '');
+            window.history.replaceState(null, '', newUrl);
+        }
+    </script>
+
     <script src="config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -34,7 +41,7 @@
     <div class="fixed top-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md z-40 border-b border-slate-800 h-24 shadow-lg">
         
         <div class="absolute left-4 top-6 z-50">
-            <button onclick="window.location.href='index.html'" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:text-white transition shadow-md border border-slate-700">
+            <button onclick="window.location.href='index'" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:text-white transition shadow-md border border-slate-700">
                 <i class="fas fa-arrow-left text-xl"></i>
             </button>
         </div>
@@ -43,9 +50,7 @@
             <h1 class="text-2xl font-black bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent tracking-widest uppercase drop-shadow-sm">
                 IRON LOG
             </h1>
-            <p id="headerDate" class="text-lg font-bold text-white mt-1 opacity-90">
-                ...
-            </p>
+            <p id="headerDate" class="text-lg font-bold text-white mt-1 opacity-90">...</p>
         </div>
 
         <div class="absolute right-4 top-8 z-50">
@@ -88,10 +93,10 @@
                     <div class="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center text-green-500 shadow-inner"><i class="fas fa-plus"></i></div>
                     <p class="text-xs text-slate-400 font-bold">แตะเพื่อเพิ่มรูปภาพใหม่</p>
                 </div>
-                
                 <div id="uploadPreview" class="hidden mt-2 relative z-20">
                     <img id="imgPreview" class="w-full h-48 object-cover rounded-xl mb-3 shadow-lg bg-black">
-                    <div class="flex gap-2 relative z-30"> <input type="date" id="photoDate" onchange="autoFillWeight()" class="flex-1 bg-slate-800 p-2 rounded-lg text-xs text-white border border-slate-600 cursor-pointer focus:border-green-500 outline-none" style="position: relative; z-index: 50;">
+                    <div class="flex gap-2 relative z-30">
+                        <input type="date" id="photoDate" onchange="autoFillWeight()" class="flex-1 bg-slate-800 p-2 rounded-lg text-xs text-white border border-slate-600 cursor-pointer focus:border-green-500 outline-none" style="position: relative; z-index: 50;">
                         <input type="number" id="photoWeight" placeholder="นน." class="w-20 bg-slate-800 p-2 rounded-lg text-xs text-white text-center border border-slate-600 font-bold focus:border-green-500 outline-none" style="position: relative; z-index: 50;">
                     </div>
                     <div class="flex gap-2 mt-3 relative z-30">
@@ -231,7 +236,7 @@
                     document.getElementById('imgPreview').src = e.target.result; 
                     document.getElementById('uploadPlaceholder').classList.add('hidden'); 
                     document.getElementById('uploadPreview').classList.remove('hidden'); 
-                    input.classList.add('hidden'); // ซ่อน Input File เพื่อเปิดทางให้ DatePicker
+                    input.classList.add('hidden');
                     autoFillWeight();
                 }; 
                 reader.readAsDataURL(input.files[0]); 
