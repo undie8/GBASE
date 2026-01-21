@@ -39,7 +39,6 @@
         </div>
 
         <div id="sectionWeight" class="space-y-6">
-            
             <div class="glass-panel p-5 rounded-3xl shadow-2xl relative overflow-hidden">
                 <div class="flex justify-between items-end mb-4 relative z-10">
                     <div>
@@ -50,7 +49,6 @@
                 <div class="h-48 w-full relative z-10">
                     <canvas id="weightChart"></canvas>
                 </div>
-                <div class="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
             </div>
 
             <div class="glass-panel p-5 rounded-3xl shadow-lg">
@@ -99,11 +97,8 @@
                     </div>
                 </div>
             </div>
-
-            <div id="galleryGrid" class="grid grid-cols-1 gap-6">
-                </div>
+            <div id="galleryGrid" class="grid grid-cols-1 gap-6"></div>
         </div>
-
     </div>
 
     <script>
@@ -140,23 +135,18 @@
             try {
                 const res = await fetch(`${API_URL}?get=fitnessData&t=${new Date().getTime()}`);
                 const data = await res.json();
-                
                 globalWeights = data.weights || [];
                 renderWeightList();
                 renderChart();
                 renderGallery(data.gallery || []);
-
                 if (globalWeights.length > 0) {
                     const latest = globalWeights[0];
                     document.getElementById('currentWeightDisplay').innerHTML = `${parseFloat(latest.value).toFixed(2)} <span class="text-sm text-slate-500 font-normal">kg</span>`;
-                    
                     if (document.getElementById('photoDate').value === new Date().toISOString().split('T')[0]) {
                         document.getElementById('photoWeight').value = latest.value;
                     }
                 }
-            } catch (e) {
-                console.error(e);
-            }
+            } catch (e) { console.error(e); }
         }
 
         function renderChart() {
@@ -179,26 +169,13 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Weight',
-                        data: values,
-                        borderColor: '#4ade80',
-                        borderWidth: 3,
-                        backgroundColor: gradient,
-                        fill: true,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: '#4ade80',
-                        pointRadius: 4,
-                        tension: 0.4
+                        label: 'Weight', data: values, borderColor: '#4ade80', borderWidth: 3, backgroundColor: gradient, fill: true,
+                        pointBackgroundColor: '#fff', pointBorderColor: '#4ade80', pointRadius: 4, tension: 0.4
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8' } },
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
-                    }
+                    responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                    scales: { y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8' } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } }
                 }
             });
         }
@@ -206,11 +183,7 @@
         function renderWeightList() {
             const list = document.getElementById('weightList');
             list.innerHTML = '';
-            
-            if (globalWeights.length === 0) {
-                list.innerHTML = '<div class="text-center text-slate-600 py-6">ยังไม่มีข้อมูล</div>';
-                return;
-            }
+            if (globalWeights.length === 0) { list.innerHTML = '<div class="text-center text-slate-600 py-6">ยังไม่มีข้อมูล</div>'; return; }
 
             globalWeights.forEach((item, index) => {
                 let diffHtml = '<span class="text-slate-600 text-xs">-</span>';
@@ -219,7 +192,6 @@
                     if (diff > 0) diffHtml = `<span class="text-red-400 text-xs font-bold"><i class="fas fa-caret-up"></i> +${diff.toFixed(2)}</span>`;
                     else if (diff < 0) diffHtml = `<span class="text-green-400 text-xs font-bold"><i class="fas fa-caret-down"></i> ${diff.toFixed(2)}</span>`;
                 }
-
                 list.innerHTML += `
                     <div class="glass-panel p-4 rounded-2xl flex justify-between items-center group">
                         <div class="flex items-center gap-4">
@@ -241,11 +213,7 @@
         function renderGallery(gallery) {
             const grid = document.getElementById('galleryGrid');
             grid.innerHTML = '';
-            
-            if (gallery.length === 0) {
-                grid.innerHTML = '<div class="text-center text-slate-600 py-10">ยังไม่มีรูปภาพ</div>';
-                return;
-            }
+            if (gallery.length === 0) { grid.innerHTML = '<div class="text-center text-slate-600 py-10">ยังไม่มีรูปภาพ</div>'; return; }
 
             gallery.forEach(img => {
                 const weightTag = img.weight ? `<div class="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg text-xs font-bold text-white border border-white/10"><i class="fas fa-weight-hanging mr-1 text-green-400"></i>${img.weight}</div>` : '';
@@ -286,14 +254,7 @@
             const btn = document.getElementById('btnSaveWeight');
             btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังบันทึก...';
             try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'saveWeight',
-                        date: document.getElementById('weightDate').value,
-                        weight: document.getElementById('weightVal').value
-                    })
-                });
+                await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveWeight', date: document.getElementById('weightDate').value, weight: document.getElementById('weightVal').value }) });
                 await loadData();
                 Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', toast: true, position: 'top', timer: 1500, showConfirmButton: false });
             } catch(e) { Swal.fire('Error', e.message, 'error'); }
@@ -307,15 +268,7 @@
             const reader = new FileReader();
             reader.onload = async (e) => {
                 try {
-                    await fetch(API_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            action: 'uploadPhoto',
-                            date: document.getElementById('photoDate').value,
-                            weight: document.getElementById('photoWeight').value,
-                            image: e.target.result
-                        })
-                    });
+                    await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'uploadPhoto', date: document.getElementById('photoDate').value, weight: document.getElementById('photoWeight').value, image: e.target.result }) });
                     cancelUpload();
                     await loadData();
                     Swal.fire({ icon: 'success', title: 'อัปโหลดเรียบร้อย', toast: true, position: 'top', timer: 1500, showConfirmButton: false });
@@ -332,9 +285,7 @@
             }
         }
 
-        function formatDate(d) {
-            return new Date(d).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
-        }
+        function formatDate(d) { return new Date(d).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }); }
     </script>
 </body>
 </html>
