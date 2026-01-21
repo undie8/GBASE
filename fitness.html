@@ -20,7 +20,6 @@
         .sync-dot { width: 6px; height: 6px; background-color: #f97316; border-radius: 50%; display: inline-block; }
         .syncing .sync-dot { animation: pulse 1s infinite; }
         @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
-        /* Custom Scrollbar */
         .custom-scroll { overflow-x: auto; scroll-behavior: smooth; }
         .custom-scroll::-webkit-scrollbar { height: 8px; }
         .custom-scroll::-webkit-scrollbar-track { background: rgba(30, 41, 59, 0.3); border-radius: 4px; margin: 0 10px; }
@@ -65,15 +64,12 @@
         </div>
 
         <div id="sectionPhoto" class="hidden space-y-6">
-            
             <div class="glass-panel p-3 rounded-2xl border-dashed border-2 border-slate-700 hover:border-slate-500 transition group relative overflow-hidden">
                 <input type="file" id="photoInput" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewUpload()">
-                
                 <div id="uploadPlaceholder" class="flex items-center justify-center gap-3 py-1">
                     <div class="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center text-green-500 shadow-inner"><i class="fas fa-plus"></i></div>
                     <p class="text-xs text-slate-400 font-bold">แตะเพื่อเพิ่มรูปภาพใหม่</p>
                 </div>
-
                 <div id="uploadPreview" class="hidden mt-2 relative z-20">
                     <img id="imgPreview" class="w-full h-48 object-cover rounded-xl mb-3 shadow-lg bg-black">
                     <div class="flex gap-2">
@@ -86,7 +82,6 @@
                     </div>
                 </div>
             </div>
-
             <div>
                 <h3 class="text-xs font-bold text-slate-500 mb-2 px-2 uppercase flex justify-between"><span>แกลเลอรี่</span><span class="text-[10px] font-normal opacity-50"><i class="fas fa-arrows-left-right mr-1"></i>เลื่อนเพื่อดู</span></h3>
                 <div id="galleryGrid" class="flex overflow-x-auto gap-4 pb-6 snap-x snap-mandatory custom-scroll"></div>
@@ -100,10 +95,20 @@
         let globalWeights = [];
         let chartInstance = null;
 
+        // 🟢 แก้ไข: ตั้งค่าวันปัจจุบันแบบ Local Time (ป้องกันปัญหาวันที่ผิดตอนเช้า)
+        function getLocalISODate() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
         window.onload = function() {
-            const today = new Date().toISOString().split('T')[0];
+            const today = getLocalISODate(); // เรียกใช้ฟังก์ชันวันที่แบบใหม่
             document.getElementById('weightDate').value = today;
             document.getElementById('photoDate').value = today;
+
             const cached = localStorage.getItem(CACHE_KEY);
             if (cached) { try { processAndRender(JSON.parse(cached)); fetchData(true); } catch(e) { fetchData(false); } } else { fetchData(false); }
         };
@@ -199,7 +204,6 @@
                     document.getElementById('imgPreview').src = e.target.result; 
                     document.getElementById('uploadPlaceholder').classList.add('hidden'); 
                     document.getElementById('uploadPreview').classList.remove('hidden'); 
-                    // ซ่อน Input File ชั่วคราวเพื่อเปิดทางให้กด DatePicker
                     input.classList.add('hidden');
                     autoFillWeight();
                 }; 
@@ -210,7 +214,7 @@
         function cancelUpload() { 
             const input = document.getElementById('photoInput');
             input.value = ''; 
-            input.classList.remove('hidden'); // แสดงกลับมาให้กดเลือกใหม่ได้
+            input.classList.remove('hidden');
             document.getElementById('uploadPlaceholder').classList.remove('hidden'); 
             document.getElementById('uploadPreview').classList.add('hidden'); 
         }
