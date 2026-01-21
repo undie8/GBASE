@@ -13,22 +13,27 @@
 
     <style>
         body { -webkit-tap-highlight-color: transparent; background-color: #0f172a; }
-        ::-webkit-scrollbar { width: 0px; background: transparent; }
         
+        /* Glass Effect */
         .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
         
+        /* Remove Number Spinner */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
 
+        /* Sync Animation */
         .sync-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: #94a3b8; background: rgba(30, 41, 59, 0.8); padding: 2px 10px; border-radius: 99px; border: 1px solid rgba(255, 255, 255, 0.1); }
         .sync-dot { width: 6px; height: 6px; background-color: #f97316; border-radius: 50%; display: inline-block; }
         .syncing .sync-dot { animation: pulse 1s infinite; }
         @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
 
-        /* ซ่อน Scrollbar แนวนอนแต่ยังเลื่อนได้ */
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        /* 🟢 Custom Scrollbar (แต่งแถบเลื่อนให้สวยและใช้งานได้บน PC) */
+        .custom-scroll { overflow-x: auto; scroll-behavior: smooth; }
+        .custom-scroll::-webkit-scrollbar { height: 8px; }
+        .custom-scroll::-webkit-scrollbar-track { background: rgba(30, 41, 59, 0.3); border-radius: 4px; margin: 0 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #f97316; cursor: pointer; }
     </style>
 </head>
 <body class="text-slate-200 font-sans min-h-screen pb-24">
@@ -108,7 +113,7 @@
                 <div id="uploadPreview" class="hidden mt-2">
                     <img id="imgPreview" class="w-full h-48 object-cover rounded-xl mb-3 shadow-lg bg-black">
                     <div class="flex gap-2">
-                        <input type="date" id="photoDate" class="flex-1 bg-slate-800 p-2 rounded-lg text-xs text-white border border-slate-600">
+                        <input type="date" id="photoDate" onchange="autoFillWeight()" class="flex-1 bg-slate-800 p-2 rounded-lg text-xs text-white border border-slate-600">
                         <input type="number" id="photoWeight" placeholder="นน." class="w-20 bg-slate-800 p-2 rounded-lg text-xs text-white text-center border border-slate-600 font-bold">
                     </div>
                     <div class="flex gap-2 mt-3 relative z-20">
@@ -121,10 +126,10 @@
             <div>
                 <h3 class="text-xs font-bold text-slate-500 mb-2 px-2 uppercase flex justify-between">
                     <span>แกลเลอรี่</span>
-                    <span class="text-[10px] font-normal opacity-50"><i class="fas fa-arrows-left-right mr-1"></i>ปัดเพื่อดู</span>
+                    <span class="text-[10px] font-normal opacity-50"><i class="fas fa-arrows-left-right mr-1"></i>เลื่อนเพื่อดู</span>
                 </h3>
                 
-                <div id="galleryGrid" class="flex overflow-x-auto gap-4 pb-6 snap-x snap-mandatory hide-scrollbar">
+                <div id="galleryGrid" class="flex overflow-x-auto gap-4 pb-6 snap-x snap-mandatory custom-scroll">
                     </div>
             </div>
         </div>
@@ -174,9 +179,22 @@
             if (globalWeights.length > 0) {
                 const latest = globalWeights[0];
                 document.getElementById('currentWeightDisplay').innerHTML = `${parseFloat(latest.value).toFixed(2)} <span class="text-sm text-slate-500 font-normal">kg</span>`;
-                if (document.getElementById('photoDate').value === new Date().toISOString().split('T')[0]) {
-                    document.getElementById('photoWeight').value = latest.value;
-                }
+                
+                // เรียก auto fill ครั้งแรก
+                autoFillWeight();
+            }
+        }
+
+        // 🟢 ฟังก์ชันใหม่: ดึงน้ำหนักตามวันที่เลือก
+        function autoFillWeight() {
+            const selectedDate = document.getElementById('photoDate').value;
+            // ค้นหาน้ำหนักที่ตรงกับวันที่ (ตัดเวลาออกเพื่อเปรียบเทียบ)
+            const record = globalWeights.find(w => new Date(w.date).toISOString().split('T')[0] === selectedDate);
+            
+            if (record) {
+                document.getElementById('photoWeight').value = record.value;
+            } else {
+                document.getElementById('photoWeight').value = ''; // เว้นว่างถ้าไม่มี
             }
         }
 
@@ -201,7 +219,6 @@
             });
         }
 
-        // 🟢 Render Gallery แบบ Horizontal Card
         function renderGallery(gallery) {
             const grid = document.getElementById('galleryGrid'); grid.innerHTML = '';
             if (gallery.length === 0) { grid.innerHTML = '<div class="w-full text-center text-slate-600 py-10 text-sm">ยังไม่มีรูปภาพ</div>'; return; }
@@ -211,21 +228,17 @@
                 let displayUrl = img.url;
                 if (img.fileId) displayUrl = `https://drive.google.com/thumbnail?id=${img.fileId}&sz=w800`;
 
-                // การ์ดแนวนอน (min-width: 85% ของจอ เพื่อให้เห็นการ์ดถัดไปนิดนึง)
                 grid.innerHTML += `
                     <div class="glass-panel rounded-2xl overflow-hidden relative group min-w-[85%] snap-center shadow-xl border border-slate-700/50">
                         <div class="relative h-[400px] bg-slate-900">
                              <img src="${displayUrl}" class="w-full h-full object-cover" loading="lazy" referrerpolicy="no-referrer" onerror="this.src='https://placehold.co/600x800?text=Image+Load+Error'">
                              ${weightTag}
-                             
                              <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent pt-10 flex justify-between items-end">
                                 <div>
                                     <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">บันทึกเมื่อ</p>
                                     <p class="text-lg font-bold text-white shadow-sm">${formatDate(img.date)}</p>
                                 </div>
-                                <button onclick="deletePhoto('${img.fileId}')" class="w-10 h-10 rounded-full bg-black/40 hover:bg-red-500/80 text-white backdrop-blur flex items-center justify-center transition border border-white/10">
-                                    <i class="fas fa-trash-alt text-sm"></i>
-                                </button>
+                                <button onclick="deletePhoto('${img.fileId}')" class="w-10 h-10 rounded-full bg-black/40 hover:bg-red-500/80 text-white backdrop-blur flex items-center justify-center transition border border-white/10"><i class="fas fa-trash-alt text-sm"></i></button>
                              </div>
                         </div>
                     </div>`;
@@ -262,21 +275,17 @@
                 const reader = new FileReader(); 
                 reader.onload = (e) => { 
                     document.getElementById('imgPreview').src = e.target.result; 
-                    // ซ่อน Placeholder แสดง Preview
                     document.getElementById('uploadPlaceholder').classList.add('hidden'); 
                     document.getElementById('uploadPreview').classList.remove('hidden'); 
-                    // เปลี่ยน Class แม่ให้รองรับความสูง content
                     input.parentElement.classList.remove('overflow-hidden');
+                    // เมื่อเลือกรูป ให้เรียก autoFillWeight ด้วยวันที่ปัจจุบัน (default)
+                    autoFillWeight();
                 }; 
                 reader.readAsDataURL(input.files[0]); 
             } 
         }
         
-        function cancelUpload() { 
-            document.getElementById('photoInput').value = ''; 
-            document.getElementById('uploadPlaceholder').classList.remove('hidden'); 
-            document.getElementById('uploadPreview').classList.add('hidden'); 
-        }
+        function cancelUpload() { document.getElementById('photoInput').value = ''; document.getElementById('uploadPlaceholder').classList.remove('hidden'); document.getElementById('uploadPreview').classList.add('hidden'); }
 
         async function saveWeight() { const btn = document.getElementById('btnSaveWeight'); btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ...'; try { await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveWeight', date: document.getElementById('weightDate').value, weight: document.getElementById('weightVal').value }) }); fetchData(true); Swal.fire({ icon: 'success', title: 'Saved', toast: true, position: 'top', timer: 1000, showConfirmButton: false }); } catch(e) { Swal.fire('Error', e.message, 'error'); } finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> บันทึกข้อมูล'; } }
         async function uploadPhoto() { const btn = document.getElementById('btnUploadConfirm'); btn.innerText = 'Sending...'; btn.disabled = true; const file = document.getElementById('photoInput').files[0]; const reader = new FileReader(); reader.onload = async (e) => { try { await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'uploadPhoto', date: document.getElementById('photoDate').value, weight: document.getElementById('photoWeight').value, image: e.target.result }) }); cancelUpload(); fetchData(true); Swal.fire({ icon: 'success', title: 'Uploaded', toast: true, position: 'top', timer: 1000, showConfirmButton: false }); } catch(err) { Swal.fire('Error', err.message, 'error'); } }; reader.readAsDataURL(file); }
