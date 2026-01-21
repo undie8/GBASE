@@ -4,25 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Iron Log</title>
+    
     <script>
         if (window.location.pathname.endsWith('.html')) {
-            window.history.replaceState(null, '', window.location.pathname.replace('.html', ''));
+            var newUrl = window.location.pathname.replace('.html', '');
+            window.history.replaceState(null, '', newUrl);
         }
     </script>
+
     <script src="config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
         body { -webkit-tap-highlight-color: transparent; background-color: #0f172a; }
         .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
+        
         .sync-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: #94a3b8; background: rgba(30, 41, 59, 0.8); padding: 2px 10px; border-radius: 99px; border: 1px solid rgba(255, 255, 255, 0.1); }
         .sync-dot { width: 6px; height: 6px; background-color: #f97316; border-radius: 50%; display: inline-block; }
         .syncing .sync-dot { animation: pulse 1s infinite; }
         @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
+        
         .custom-scroll { overflow-x: auto; scroll-behavior: smooth; }
         .custom-scroll::-webkit-scrollbar { height: 8px; }
         .custom-scroll::-webkit-scrollbar-track { background: rgba(30, 41, 59, 0.3); border-radius: 4px; margin: 0 10px; }
@@ -32,27 +38,22 @@
 </head>
 <body class="text-slate-200 font-sans min-h-screen pb-24">
 
-    <div class="fixed top-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md z-50 border-b border-slate-800 h-16 shadow-lg flex items-center justify-between px-4">
-        
-        <button onclick="window.location.href='index'" class="flex items-center text-slate-400 hover:text-white transition z-50">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-            </svg>
-            <span class="text-xs font-bold uppercase tracking-wider">Back</span>
-        </button>
-
-        <h1 class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xl font-black bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent tracking-widest uppercase drop-shadow-sm pointer-events-none">
+    <div class="fixed top-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md z-50 border-b border-slate-800 h-16 shadow-lg flex items-center justify-center">
+        <div class="absolute left-4">
+            <button onclick="window.location.href='index'" class="w-9 h-9 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:text-white transition shadow-md border border-slate-700">
+                <i class="fas fa-arrow-left text-lg"></i>
+            </button>
+        </div>
+        <h1 class="text-xl font-black bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent tracking-widest uppercase drop-shadow-sm">
             IRON LOG
         </h1>
-
-        <div class="z-50">
-            <div id="syncStatus" class="sync-badge hidden">
-                <span class="sync-dot"></span> <span id="syncText">Syncing...</span>
-            </div>
+        <div class="absolute right-4">
+            <div id="syncStatus" class="sync-badge hidden"><span class="sync-dot"></span> <span id="syncText">Syncing...</span></div>
         </div>
     </div>
 
     <div class="max-w-md mx-auto pt-24 px-5">
+
         <div class="text-center mb-6">
             <p id="headerDate" class="text-xl font-bold text-white tracking-wide drop-shadow-md">...</p>
         </div>
@@ -66,7 +67,9 @@
 
         <div id="sectionWeight" class="space-y-6">
             <div class="glass-panel p-5 rounded-3xl shadow-2xl relative overflow-hidden">
-                <div class="flex justify-between items-end mb-4 relative z-10"><div><p class="text-xs text-slate-400 uppercase tracking-wider font-bold">น้ำหนักปัจจุบัน</p><h2 id="currentWeightDisplay" class="text-3xl font-bold text-white mt-1">--.-- <span class="text-sm text-slate-500 font-normal">kg</span></h2></div></div>
+                <div class="flex justify-between items-end mb-4 relative z-10">
+                    <div><p class="text-xs text-slate-400 uppercase tracking-wider font-bold">น้ำหนักปัจจุบัน</p><h2 id="currentWeightDisplay" class="text-3xl font-bold text-white mt-1">--.-- <span class="text-sm text-slate-500 font-normal">kg</span></h2></div>
+                </div>
                 <div class="h-48 w-full relative z-10"><canvas id="weightChart"></canvas></div>
             </div>
             <div class="glass-panel p-4 rounded-3xl shadow-lg">
@@ -80,9 +83,13 @@
         </div>
 
         <div id="sectionPhoto" class="hidden space-y-6">
+            
             <div class="glass-panel p-3 rounded-2xl border-dashed border-2 border-slate-700 hover:border-slate-500 transition group relative overflow-hidden">
                 <input type="file" id="photoInput" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewUpload()">
-                <div id="uploadPlaceholder" class="flex items-center justify-center gap-3 py-1"><div class="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center text-green-500 shadow-inner"><i class="fas fa-plus"></i></div><p class="text-xs text-slate-400 font-bold">แตะเพื่อเพิ่มรูปภาพใหม่</p></div>
+                <div id="uploadPlaceholder" class="flex items-center justify-center gap-3 py-1">
+                    <div class="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center text-green-500 shadow-inner"><i class="fas fa-plus"></i></div>
+                    <p class="text-xs text-slate-400 font-bold">แตะเพื่อเพิ่มรูปภาพใหม่</p>
+                </div>
                 <div id="uploadPreview" class="hidden mt-2 relative z-20">
                     <img id="imgPreview" class="w-full h-48 object-cover rounded-xl mb-3 shadow-lg bg-black">
                     <div class="flex gap-2 relative z-50"> 
@@ -95,7 +102,17 @@
                     </div>
                 </div>
             </div>
-            <div><h3 class="text-xs font-bold text-slate-500 mb-2 px-2 uppercase flex justify-between"><span>แกลเลอรี่</span><span class="text-[10px] font-normal opacity-50"><i class="fas fa-arrows-left-right mr-1"></i>เลื่อนเพื่อดู</span></h3><div id="galleryGrid" class="flex overflow-x-auto gap-4 pb-6 snap-x snap-mandatory custom-scroll"></div></div>
+
+            <div class="flex items-end justify-between mt-2">
+                <h3 class="text-xs font-bold text-slate-500 mb-2 px-2 uppercase flex-1">แกลเลอรี่ <span class="font-normal opacity-50 ml-1">(ปัดเพื่อดู)</span></h3>
+                <div class="flex gap-1 items-center bg-slate-800/80 p-1 rounded-lg border border-slate-700/50 mb-2">
+                    <input type="date" id="galleryStart" onchange="renderGallery()" class="bg-transparent text-[10px] text-white w-20 text-center outline-none">
+                    <span class="text-[10px] text-slate-500">-</span>
+                    <input type="date" id="galleryEnd" onchange="renderGallery()" class="bg-transparent text-[10px] text-white w-20 text-center outline-none">
+                </div>
+            </div>
+
+            <div id="galleryGrid" class="flex overflow-x-auto gap-4 pb-6 snap-x snap-mandatory custom-scroll"></div>
         </div>
     </div>
 
@@ -103,62 +120,197 @@
         const API_URL = CONFIG.SCRIPT_URL;
         const CACHE_KEY = 'iron_log_data';
         let globalWeights = [];
+        let globalGallery = [];
         let chartInstance = null;
         const THAI_MONTHS_FULL = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
 
-        function getLocalISODate() { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`; }
-        function updateHeaderDate() { const now = new Date(); document.getElementById('headerDate').innerText = `${now.getDate()} ${THAI_MONTHS_FULL[now.getMonth()]} ${now.getFullYear()+543}`; }
+        function getLocalISODate(offsetDays = 0) {
+            const now = new Date();
+            if (offsetDays !== 0) now.setDate(now.getDate() + offsetDays);
+            return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+        }
+
+        function updateHeaderDate() {
+            const now = new Date();
+            document.getElementById('headerDate').innerText = `${now.getDate()} ${THAI_MONTHS_FULL[now.getMonth()]} ${now.getFullYear()+543}`;
+        }
 
         window.onload = function() {
             updateHeaderDate();
             const today = getLocalISODate();
-            document.getElementById('weightDate').value = today; document.getElementById('photoDate').value = today;
+            const last30Days = getLocalISODate(-30); // Default 30 วันย้อนหลัง
+
+            document.getElementById('weightDate').value = today;
+            document.getElementById('photoDate').value = today;
+            
+            // 🟢 Set Default Date Range
+            document.getElementById('galleryStart').value = last30Days;
+            document.getElementById('galleryEnd').value = today;
+
             const cached = localStorage.getItem(CACHE_KEY);
             if (cached) { try { processAndRender(JSON.parse(cached)); fetchData(true); } catch(e) { fetchData(false); } } else { fetchData(false); }
         };
 
         async function fetchData(isBackground) {
-            if(!isBackground) document.getElementById('loader').classList.remove('hidden'); if(isBackground) showSyncStatus(true);
-            try { const res = await fetch(`${API_URL}?get=fitnessData&t=${new Date().getTime()}`); const data = await res.json(); localStorage.setItem(CACHE_KEY, JSON.stringify(data)); processAndRender(data); } catch (e) { console.error("Fetch Error:", e); } finally { if(!isBackground) document.getElementById('loader').classList.add('hidden'); if(isBackground) showSyncStatus(false); }
+            if(!isBackground) document.getElementById('loader').classList.remove('hidden');
+            if(isBackground) showSyncStatus(true);
+            try {
+                const res = await fetch(`${API_URL}?get=fitnessData&t=${new Date().getTime()}`);
+                const data = await res.json();
+                localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+                processAndRender(data);
+            } catch (e) { console.error("Fetch Error:", e); } 
+            finally { if(!isBackground) document.getElementById('loader').classList.add('hidden'); if(isBackground) showSyncStatus(false); }
         }
+
         function processAndRender(data) {
-            globalWeights = data.weights || []; renderWeightList(); renderChart(); renderGallery(data.gallery || []);
-            if (globalWeights.length > 0) { document.getElementById('currentWeightDisplay').innerHTML = `${parseFloat(globalWeights[0].value).toFixed(2)} <span class="text-sm text-slate-500 font-normal">kg</span>`; autoFillWeight(); }
+            globalWeights = data.weights || [];
+            globalGallery = data.gallery || []; // เก็บข้อมูล Gallery ทั้งหมดไว้ก่อน
+            
+            renderWeightList(); 
+            renderChart(); 
+            renderGallery(); // เรียก Render Gallery (จะไปใช้ Filter ภายในฟังก์ชัน)
+
+            if (globalWeights.length > 0) {
+                const latest = globalWeights[0];
+                document.getElementById('currentWeightDisplay').innerHTML = `${parseFloat(latest.value).toFixed(2)} <span class="text-sm text-slate-500 font-normal">kg</span>`;
+                autoFillWeight();
+            }
         }
+
         function autoFillWeight() {
-            const selectedDate = document.getElementById('photoDate').value; if (!selectedDate) return;
-            const record = globalWeights.find(w => { const d = new Date(w.date); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` === selectedDate; });
-            document.getElementById('photoWeight').value = record ? record.value : '';
+            const selectedDate = document.getElementById('photoDate').value;
+            if (!selectedDate) return;
+            const record = globalWeights.find(w => {
+                const d = new Date(w.date);
+                const wDateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                return wDateStr === selectedDate;
+            });
+            if (record) { document.getElementById('photoWeight').value = record.value; } else { document.getElementById('photoWeight').value = ''; }
         }
-        function showSyncStatus(show) { const el = document.getElementById('syncStatus'); const txt = document.getElementById('syncText'); if(show) { el.classList.remove('hidden'); el.classList.add('syncing'); txt.innerText = "Syncing..."; } else { el.classList.remove('syncing'); txt.innerText = "Updated"; setTimeout(() => { el.classList.add('hidden'); }, 2000); } }
+
+        function showSyncStatus(show) {
+            const el = document.getElementById('syncStatus'); const txt = document.getElementById('syncText');
+            if(show) { el.classList.remove('hidden'); el.classList.add('syncing'); txt.innerText = "Syncing..."; } 
+            else { el.classList.remove('syncing'); txt.innerText = "Updated"; setTimeout(() => { el.classList.add('hidden'); }, 2000); }
+        }
+
         function renderWeightList() {
-            const list = document.getElementById('weightList'); list.innerHTML = ''; if (globalWeights.length === 0) { list.innerHTML = '<div class="text-center text-slate-600 py-6 text-sm">ยังไม่มีข้อมูล</div>'; return; }
+            const list = document.getElementById('weightList'); list.innerHTML = '';
+            if (globalWeights.length === 0) { list.innerHTML = '<div class="text-center text-slate-600 py-6 text-sm">ยังไม่มีข้อมูล</div>'; return; }
             globalWeights.forEach((item, index) => {
-                let diffHtml = ''; if (index < globalWeights.length - 1) { const diff = parseFloat(item.value) - parseFloat(globalWeights[index+1].value); if (diff > 0) diffHtml = `<span class="text-red-400 text-[10px] font-bold bg-red-400/10 px-1.5 py-0.5 rounded ml-2">+${diff.toFixed(2)}</span>`; else if (diff < 0) diffHtml = `<span class="text-green-400 text-[10px] font-bold bg-green-400/10 px-1.5 py-0.5 rounded ml-2">${diff.toFixed(2)}</span>`; else diffHtml = `<span class="text-slate-600 text-[10px] bg-slate-700/50 px-1.5 py-0.5 rounded ml-2">-</span>`; }
+                let diffHtml = '';
+                if (index < globalWeights.length - 1) {
+                    const diff = parseFloat(item.value) - parseFloat(globalWeights[index+1].value);
+                    if (diff > 0) diffHtml = `<span class="text-red-400 text-[10px] font-bold bg-red-400/10 px-1.5 py-0.5 rounded ml-2">+${diff.toFixed(2)}</span>`;
+                    else if (diff < 0) diffHtml = `<span class="text-green-400 text-[10px] font-bold bg-green-400/10 px-1.5 py-0.5 rounded ml-2">${diff.toFixed(2)}</span>`;
+                    else diffHtml = `<span class="text-slate-600 text-[10px] bg-slate-700/50 px-1.5 py-0.5 rounded ml-2">-</span>`;
+                }
                 list.innerHTML += `<div class="glass-panel px-4 py-3 rounded-xl flex justify-between items-center group hover:bg-slate-800 transition"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-orange-400 font-bold text-sm shadow-inner">${parseFloat(item.value).toFixed(1)}</div><div class="flex flex-col"><span class="text-sm font-bold text-slate-200">${formatDate(item.date)}</span></div></div><div class="flex items-center">${diffHtml}<button onclick="deleteWeight('${item.date}')" class="w-8 h-8 rounded-full text-slate-600 hover:text-red-400 hover:bg-red-400/10 transition flex items-center justify-center ml-2"><i class="fas fa-trash-alt text-xs"></i></button></div></div>`;
             });
         }
-        function renderGallery(gallery) {
-            const grid = document.getElementById('galleryGrid'); grid.innerHTML = ''; if (gallery.length === 0) { grid.innerHTML = '<div class="w-full text-center text-slate-600 py-10 text-sm">ยังไม่มีรูปภาพ</div>'; return; }
-            gallery.forEach(img => {
+
+        // 🟢 ฟังก์ชัน Render Gallery ใหม่ (Sort + Filter + AutoScroll)
+        function renderGallery() {
+            const grid = document.getElementById('galleryGrid'); 
+            grid.innerHTML = '';
+            
+            const startStr = document.getElementById('galleryStart').value;
+            const endStr = document.getElementById('galleryEnd').value;
+            const startDate = startStr ? new Date(startStr) : new Date('2000-01-01');
+            const endDate = endStr ? new Date(endStr) : new Date();
+            endDate.setHours(23, 59, 59, 999); // สิ้นสุดวัน
+
+            // 1. กรองวันที่
+            let filtered = globalGallery.filter(img => {
+                const d = new Date(img.date);
+                return d >= startDate && d <= endDate;
+            });
+
+            // 2. เรียงลำดับ (เก่า -> ใหม่)
+            filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            if (filtered.length === 0) { 
+                grid.innerHTML = '<div class="w-full text-center text-slate-600 py-10 text-sm">ไม่พบรูปภาพในช่วงเวลานี้</div>'; 
+                return; 
+            }
+
+            filtered.forEach(img => {
                 const weightTag = img.weight ? `<div class="absolute top-3 right-3 bg-black/70 backdrop-blur-md px-2 py-1 rounded-lg text-xs font-bold text-white border border-white/10 shadow-lg"><i class="fas fa-weight-hanging mr-1 text-green-400"></i>${img.weight}</div>` : '';
                 let displayUrl = img.url; if (img.fileId) displayUrl = `https://drive.google.com/thumbnail?id=${img.fileId}&sz=w800`;
-                grid.innerHTML += `<div class="glass-panel rounded-2xl overflow-hidden relative group min-w-[85%] snap-center shadow-xl border border-slate-700/50"><div class="relative h-[400px] bg-slate-900"><img src="${displayUrl}" class="w-full h-full object-cover" loading="lazy" referrerpolicy="no-referrer" onerror="this.src='https://placehold.co/600x800?text=Image+Load+Error'">${weightTag}<div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent pt-10 flex justify-between items-end"><div><p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">บันทึกเมื่อ</p><p class="text-lg font-bold text-white shadow-sm">${formatDate(img.date)}</p></div><button onclick="deletePhoto('${img.fileId}')" class="w-10 h-10 rounded-full bg-black/40 hover:bg-red-500/80 text-white backdrop-blur flex items-center justify-center transition border border-white/10"><i class="fas fa-trash-alt text-sm"></i></button></div></div></div>`;
+                
+                grid.innerHTML += `
+                    <div class="glass-panel rounded-2xl overflow-hidden relative group min-w-[85%] snap-center shadow-xl border border-slate-700/50">
+                        <div class="relative h-[400px] bg-slate-900">
+                             <img src="${displayUrl}" class="w-full h-full object-cover" loading="lazy" referrerpolicy="no-referrer" onerror="this.src='https://placehold.co/600x800?text=Image+Load+Error'">
+                             ${weightTag}
+                             <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent pt-10 flex justify-between items-end">
+                                <div>
+                                    <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">บันทึกเมื่อ</p>
+                                    <p class="text-lg font-bold text-white shadow-sm">${formatDate(img.date)}</p>
+                                </div>
+                                <button onclick="deletePhoto('${img.fileId}')" class="w-10 h-10 rounded-full bg-black/40 hover:bg-red-500/80 text-white backdrop-blur flex items-center justify-center transition border border-white/10"><i class="fas fa-trash-alt text-sm"></i></button>
+                             </div>
+                        </div>
+                    </div>`;
             });
+
+            // 3. Auto Scroll to Right (Newest)
+            // ต้องรอให้ DOM Render เสร็จก่อนนิดนึง
+            setTimeout(() => {
+                grid.scrollLeft = grid.scrollWidth;
+            }, 100);
         }
+
         function renderChart() {
-            const ctx = document.getElementById('weightChart').getContext('2d'); const chartData = [...globalWeights].slice(0, 10).reverse();
-            const labels = chartData.map(d => { const date = new Date(d.date); return `${date.getDate()}/${date.getMonth()+1}`; }); const values = chartData.map(d => d.value);
+            const ctx = document.getElementById('weightChart').getContext('2d');
+            const chartData = [...globalWeights].slice(0, 10).reverse();
+            const labels = chartData.map(d => { const date = new Date(d.date); return `${date.getDate()}/${date.getMonth()+1}`; });
+            const values = chartData.map(d => d.value);
             if (chartInstance) chartInstance.destroy();
             chartInstance = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [{ label: 'Weight', data: values, borderColor: '#f97316', borderWidth: 2, backgroundColor: (context) => { const ctx = context.chart.ctx; const gradient = ctx.createLinearGradient(0, 0, 0, 300); gradient.addColorStop(0, 'rgba(249, 115, 22, 0.4)'); gradient.addColorStop(1, 'rgba(249, 115, 22, 0.0)'); return gradient; }, fill: true, pointBackgroundColor: '#fff', pointBorderColor: '#f97316', pointRadius: 3, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8', font:{size:10} } }, x: { grid: { display: false }, ticks: { color: '#94a3b8', font:{size:10} } } } } });
         }
+
         function switchTab(tab) {
-            const wSec = document.getElementById('sectionWeight'); const pSec = document.getElementById('sectionPhoto'); const wTab = document.getElementById('tabWeight'); const pTab = document.getElementById('tabPhoto');
-            if (tab === 'weight') { wSec.classList.remove('hidden'); pSec.classList.add('hidden'); wTab.className = "flex-1 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg bg-slate-700 text-white"; pTab.className = "flex-1 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-400 hover:text-slate-200"; renderChart(); } 
-            else { wSec.classList.add('hidden'); pSec.classList.remove('hidden'); pTab.className = "flex-1 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg bg-slate-700 text-white"; wTab.className = "flex-1 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-400 hover:text-slate-200"; }
+            const wSec = document.getElementById('sectionWeight'); const pSec = document.getElementById('sectionPhoto');
+            const wTab = document.getElementById('tabWeight'); const pTab = document.getElementById('tabPhoto');
+            if (tab === 'weight') {
+                wSec.classList.remove('hidden'); pSec.classList.add('hidden');
+                wTab.className = "flex-1 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg bg-slate-700 text-white";
+                pTab.className = "flex-1 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-400 hover:text-slate-200";
+                renderChart(); 
+            } else {
+                wSec.classList.add('hidden'); pSec.classList.remove('hidden');
+                pTab.className = "flex-1 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg bg-slate-700 text-white";
+                wTab.className = "flex-1 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-400 hover:text-slate-200";
+                // เรียก Render Gallery อีกครั้งเพื่อให้ Scroll ทำงานตอนสลับ Tab
+                renderGallery();
+            }
         }
-        function previewUpload() { const input = document.getElementById('photoInput'); if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = (e) => { document.getElementById('imgPreview').src = e.target.result; document.getElementById('uploadPlaceholder').classList.add('hidden'); document.getElementById('uploadPreview').classList.remove('hidden'); input.classList.add('hidden'); autoFillWeight(); }; reader.readAsDataURL(input.files[0]); } }
-        function cancelUpload() { const input = document.getElementById('photoInput'); input.value = ''; input.classList.remove('hidden'); document.getElementById('uploadPlaceholder').classList.remove('hidden'); document.getElementById('uploadPreview').classList.add('hidden'); }
+
+        function previewUpload() { 
+            const input = document.getElementById('photoInput'); 
+            if (input.files && input.files[0]) { 
+                const reader = new FileReader(); 
+                reader.onload = (e) => { 
+                    document.getElementById('imgPreview').src = e.target.result; 
+                    document.getElementById('uploadPlaceholder').classList.add('hidden'); 
+                    document.getElementById('uploadPreview').classList.remove('hidden'); 
+                    input.classList.add('hidden');
+                    autoFillWeight();
+                }; 
+                reader.readAsDataURL(input.files[0]); 
+            } 
+        }
+        
+        function cancelUpload() { 
+            const input = document.getElementById('photoInput');
+            input.value = ''; 
+            input.classList.remove('hidden');
+            document.getElementById('uploadPlaceholder').classList.remove('hidden'); 
+            document.getElementById('uploadPreview').classList.add('hidden'); 
+        }
+
         async function saveWeight() { const btn = document.getElementById('btnSaveWeight'); btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ...'; try { await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveWeight', date: document.getElementById('weightDate').value, weight: document.getElementById('weightVal').value }) }); fetchData(true); Swal.fire({ icon: 'success', title: 'Saved', toast: true, position: 'top', timer: 1000, showConfirmButton: false }); } catch(e) { Swal.fire('Error', e.message, 'error'); } finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> บันทึกข้อมูล'; } }
         async function uploadPhoto() { const btn = document.getElementById('btnUploadConfirm'); btn.innerText = 'Sending...'; btn.disabled = true; const file = document.getElementById('photoInput').files[0]; const reader = new FileReader(); reader.onload = async (e) => { try { await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'uploadPhoto', date: document.getElementById('photoDate').value, weight: document.getElementById('photoWeight').value, image: e.target.result }) }); cancelUpload(); fetchData(true); Swal.fire({ icon: 'success', title: 'Uploaded', toast: true, position: 'top', timer: 1000, showConfirmButton: false }); } catch(err) { Swal.fire('Error', err.message, 'error'); } }; reader.readAsDataURL(file); }
         async function deletePhoto(fileId) { const res = await Swal.fire({ title: 'ลบรูป?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'ลบ', cancelButtonText: 'ยกเลิก', background:'#1e293b', color:'#fff', width: 250 }); if (res.isConfirmed) { await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'deletePhoto', fileId: fileId }) }); fetchData(true); } }
