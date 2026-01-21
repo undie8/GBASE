@@ -11,14 +11,8 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💪</text></svg>">
 
     <script>
-        if (sessionStorage.getItem('gbase_unlocked') !== 'true') {
-            window.location.href = 'index.html';
-        }
-        // Auto Clean URL (Hide .html)
-        if (window.location.pathname.endsWith('.html')) {
-            var newUrl = window.location.pathname.replace('.html', '');
-            window.history.replaceState(null, '', newUrl);
-        }
+        if (sessionStorage.getItem('gbase_unlocked') !== 'true') window.location.href = 'index.html';
+        if (window.location.pathname.endsWith('.html')) window.history.replaceState(null, '', window.location.pathname.replace('.html', ''));
     </script>
 
     <style>
@@ -29,11 +23,6 @@
         .workout-card.done { opacity: 0.5; border-color: #22c55e; }
         .check-circle { width: 24px; height: 24px; border: 2px solid #475569; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
         .workout-card.done .check-circle { background: #22c55e; border-color: #22c55e; }
-        
-        #loader { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
-        .spinner { width: 30px; height: 30px; border: 3px solid rgba(34, 197, 94, 0.2); border-top: 3px solid #22c55e; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-
         .sync-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 9px; color: #94a3b8; background: rgba(30, 41, 59, 0.5); padding: 2px 8px; border-radius: 99px; border: 1px solid rgba(255, 255, 255, 0.05); }
         .sync-dot { width: 6px; height: 6px; background-color: #22c55e; border-radius: 50%; display: inline-block; }
         .syncing .sync-dot { animation: pulse 1s infinite; }
@@ -41,18 +30,23 @@
         
         .custom-checkbox { width: 18px; height: 18px; accent-color: #ef4444; cursor: pointer; }
         .btn-delete-selected { background: #ef4444; color: white; font-weight: bold; padding: 6px 12px; border-radius: 8px; font-size: 12px; display: none; transition: 0.2s; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.5); }
-        .btn-delete-selected:active { transform: scale(0.95); }
+        
+        /* Gallery Styles */
+        .photo-card { position: relative; border-radius: 12px; overflow: hidden; background: #1e293b; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.05); }
+        .photo-card img { width: 100%; height: auto; display: block; }
+        .photo-info { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); padding: 20px 12px 12px; color: white; }
     </style>
 </head>
 <body>
 
-    <div id="loader"><div class="spinner mb-2"></div><p class="text-green-400 text-xs">Loading...</p></div>
+    <div id="loader" class="fixed inset-0 bg-slate-900/90 z-50 hidden flex-col items-center justify-center">
+        <div class="w-8 h-8 border-4 border-green-500/20 border-t-green-500 rounded-full animate-spin mb-2"></div>
+        <p class="text-green-400 text-xs">Processing...</p>
+    </div>
 
-    <div class="bg-slate-900 px-4 py-3 flex items-center justify-between border-b border-gray-800 sticky top-0 z-20 relative h-[60px]">
+    <div class="bg-slate-900 px-4 py-3 flex items-center justify-between border-b border-gray-800 sticky top-0 z-20 h-[60px]">
         <a href="index.html" class="flex items-center text-gray-400 hover:text-white z-20">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
             <span class="text-xs font-bold uppercase tracking-wider">Back</span>
         </a>
         <div class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
@@ -64,14 +58,16 @@
     </div>
 
     <div class="p-4 max-w-lg mx-auto pb-20">
+        
         <div class="mb-5 text-center pt-2">
             <h2 id="bigDateDisplay" class="text-2xl font-bold text-white tracking-wide drop-shadow-md">...</h2>
             <p class="text-[10px] text-green-400 uppercase tracking-widest opacity-80 mt-1">Today's Focus</p>
         </div>
 
         <div class="flex bg-slate-800/50 rounded-lg p-1 mb-4">
-            <button onclick="switchTab('workout')" id="tab-workout" class="tab-btn active flex-1 py-2 text-xs font-bold rounded-md">🏋️ ออกกำลังกาย</button>
+            <button onclick="switchTab('workout')" id="tab-workout" class="tab-btn active flex-1 py-2 text-xs font-bold rounded-md">🏋️ ท่าฝึก</button>
             <button onclick="switchTab('weight')" id="tab-weight" class="tab-btn flex-1 py-2 text-xs font-bold rounded-md">⚖️ น้ำหนัก</button>
+            <button onclick="switchTab('gallery')" id="tab-gallery" class="tab-btn flex-1 py-2 text-xs font-bold rounded-md">📸 รูปหุ่น</button>
         </div>
 
         <div id="view-workout">
@@ -81,9 +77,7 @@
                         <p class="text-[10px] text-gray-500 uppercase">วันที่</p>
                         <input type="date" id="workoutDate" class="bg-transparent text-white font-bold text-lg outline-none" onchange="renderWorkouts()">
                     </div>
-                    <button onclick="addWorkoutPrompt()" class="bg-green-600 hover:bg-green-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition transform active:scale-95">
-                        + เพิ่มท่า
-                    </button>
+                    <button onclick="addWorkoutPrompt()" class="bg-green-600 hover:bg-green-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition transform active:scale-95">+ เพิ่มท่า</button>
                 </div>
                 <div class="h-1 bg-gray-700 rounded-full overflow-hidden">
                     <div id="progressBar" class="h-full bg-green-500 transition-all duration-500" style="width: 0%"></div>
@@ -102,50 +96,49 @@
                     <button onclick="saveWeight()" class="bg-blue-600 text-white px-4 rounded-lg font-bold shadow-lg active:scale-95">บันทึก</button>
                 </div>
             </div>
-
             <div class="bg-slate-800/50 p-2 rounded-2xl border border-white/5 mb-4 h-64">
                 <canvas id="weightChart"></canvas>
             </div>
-            
             <div class="flex justify-between items-center mb-2 px-1 h-8">
                 <p class="text-[10px] text-gray-500 font-bold uppercase">ประวัติย้อนหลัง</p>
                 <button id="btnDelSelectedWeight" onclick="deleteBulkWeight()" class="btn-delete-selected">🗑️ ลบที่เลือก</button>
             </div>
-
             <div id="weightHistory" class="space-y-1"></div>
         </div>
+
+        <div id="view-gallery" class="hidden">
+            <div class="bg-slate-800/50 p-4 rounded-2xl border border-white/5 mb-4">
+                <h3 class="text-white font-bold mb-3">อัปโหลดรูป Body Check</h3>
+                <input type="date" id="photoDate" class="input-dark mb-2">
+                <input type="file" id="photoInput" accept="image/*" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-green-500/10 file:text-green-500 hover:file:bg-green-500/20 mb-3">
+                <button onclick="uploadPhoto()" class="w-full bg-green-600 text-white py-2 rounded-lg font-bold shadow-lg active:scale-95">⬆️ อัปโหลดรูปภาพ</button>
+            </div>
+            
+            <div id="galleryList" class="space-y-4">
+                </div>
+        </div>
+
     </div>
 
     <script src="config.js"></script>
     <script>
         const CACHE_KEY = 'gbase_fitness_cache';
-        let globalData = { weights: [], workouts: [] };
+        let globalData = { weights: [], workouts: [], gallery: [] };
         let chartInstance = null;
 
         window.onload = function() {
-            // ตั้งค่าวันที่ไทย
             const d = new Date();
             const dateOpts = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
             document.getElementById('bigDateDisplay').innerText = d.toLocaleDateString('th-TH', dateOpts);
             
-            // ตั้งค่า Date Picker เป็นวันนี้
             document.getElementById('workoutDate').valueAsDate = new Date();
+            document.getElementById('photoDate').valueAsDate = new Date();
             
-            // โหลดข้อมูลจาก Cache ก่อนเพื่อความเร็ว
-            const cachedData = localStorage.getItem(CACHE_KEY);
-            if (cachedData) {
-                try {
-                    globalData = JSON.parse(cachedData);
-                    renderWorkouts();
-                    renderWeight();
-                    fetchData(true);
-                } catch(e) { fetchData(false); }
-            } else {
-                fetchData(false);
-            }
+            // Force fetch on load
+            fetchData(false);
         }
 
-        // ✅ ฟังก์ชันแก้ Timezone (แปลง UTC เป็น Local Date String)
+        // --- Core Functions ---
         function getSafeDateString(dateInput) {
             if (!dateInput) return "";
             const d = new Date(dateInput);
@@ -159,24 +152,18 @@
             if (isBackground) showSyncStatus(true);
             try {
                 if (typeof CONFIG === 'undefined' || !CONFIG.SCRIPT_URL) return;
-                
-                // ✅ Cache Busting: สุ่มเลขเพื่อบังคับโหลดใหม่
                 const cacheBuster = new Date().getTime() + '-' + Math.random();
-                const res = await fetch(`${CONFIG.SCRIPT_URL}?get=fitnessData&v=${cacheBuster}`, {
-                    method: 'GET',
-                    cache: 'no-store'
-                });
-                
+                const res = await fetch(`${CONFIG.SCRIPT_URL}?get=fitnessData&v=${cacheBuster}`, { method: 'GET', cache: 'no-store' });
                 const data = await res.json();
                 if (data) {
                     globalData = data;
                     localStorage.setItem(CACHE_KEY, JSON.stringify(data));
                     renderWorkouts();
                     renderWeight();
+                    renderGallery();
                 }
-            } catch (e) {
-                console.error(e);
-            } finally {
+            } catch (e) { console.error(e); } 
+            finally {
                 document.getElementById('loader').style.display = 'none';
                 showSyncStatus(false);
             }
@@ -189,15 +176,12 @@
             else { el.classList.remove('syncing'); txt.innerText = "Updated"; setTimeout(() => { el.classList.add('hidden'); }, 2000); }
         }
 
+        // --- Workout Logic ---
         function renderWorkouts() {
-            const selectedDateStr = document.getElementById('workoutDate').value; // yyyy-mm-dd
+            const selectedDateStr = document.getElementById('workoutDate').value;
             const list = document.getElementById('workoutList');
             list.innerHTML = '';
-            
-            const todayWorkouts = (globalData.workouts || []).filter(w => {
-                // เทียบวันที่แบบปลอดภัย
-                return getSafeDateString(w.date) === selectedDateStr;
-            });
+            const todayWorkouts = (globalData.workouts || []).filter(w => getSafeDateString(w.date) === selectedDateStr);
 
             if (todayWorkouts.length === 0) {
                 list.innerHTML = `<div class="text-center py-10 text-gray-500 text-xs italic">วันนี้ยังไม่มีรายการออกกำลังกาย<br>กดปุ่ม + เพื่อเพิ่ม</div>`;
@@ -228,12 +212,8 @@
             
             if (formValues && formValues[0]) {
                 document.getElementById('loader').style.display = 'flex';
-                // ส่งข้อมูล
                 await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'addWorkout', date: date, exercise: formValues[0], sets: formValues[1] || '-' }) });
-                
-                // ✅ หน่วงเวลา 1.5 วินาที ให้ Sheet เขียนเสร็จ
                 await new Promise(r => setTimeout(r, 1500));
-                
                 await fetchData(true);
                 document.getElementById('loader').style.display = 'none';
             }
@@ -241,27 +221,25 @@
 
         async function toggleStatus(idx, currentStatus) {
             const newStatus = currentStatus === 'Done' ? 'Pending' : 'Done';
-            // Optimistic update (แก้หน้าจอเลยไม่ต้องรอ)
             const item = globalData.workouts.find(w => w.rowIndex === idx);
             if(item) item.status = newStatus;
             renderWorkouts();
-            
             showSyncStatus(true);
             await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'toggleWorkout', rowIndex: idx, status: newStatus }) });
-            
-            // ✅ หน่วงเวลาเล็กน้อย
             await new Promise(r => setTimeout(r, 1000));
             showSyncStatus(false);
         }
 
+        // --- Weight Logic ---
         function renderWeight() {
             const weights = globalData.weights || [];
             if (weights.length > 0) {
                 const last = weights[weights.length - 1];
                 document.getElementById('currentWeightDisplay').innerHTML = `${parseFloat(last.weight).toFixed(2)} <span class="text-sm text-gray-500">kg</span>`;
             }
-
-            const ctx = document.getElementById('weightChart').getContext('2d');
+            // Chart and List rendering (omitted for brevity, same as before)
+            // ... (โค้ดส่วน Chart และ List ยังเหมือนเดิมครับ) ...
+             const ctx = document.getElementById('weightChart').getContext('2d');
             const recentWeights = weights.slice(-15);
             const labels = recentWeights.map(w => { const d = new Date(w.date); return `${d.getDate()}/${d.getMonth()+1}`; });
             const dataPoints = recentWeights.map(w => w.weight);
@@ -273,7 +251,6 @@
             for (let i = weights.length - 1; i >= 0; i--) {
                 const w = weights[i];
                 const d = new Date(w.date);
-                
                 let diffHtml = '';
                 if (i > 0) {
                     const prev = weights[i-1].weight;
@@ -282,81 +259,134 @@
                     else if (diff < 0) diffHtml = `<span class="text-green-400 text-[10px] mr-2">▼ ${diff.toFixed(2)}</span>`;
                     else diffHtml = `<span class="text-gray-500 text-[10px] mr-2">-</span>`;
                 }
-
                 html += `
                     <div class="flex justify-between items-center bg-slate-800/30 p-2 rounded text-xs mb-1">
                         <span class="text-gray-400 w-20">${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}</span>
                         <div class="flex items-center">
                             ${diffHtml}
                             <span class="font-bold text-white w-16 text-right">${parseFloat(w.weight).toFixed(2)} kg</span>
-                            <div class="ml-3 flex items-center">
-                                <input type="checkbox" class="weight-cb custom-checkbox" value="${w.rowIndex}" onchange="updateDelBtn()">
-                            </div>
+                            <div class="ml-3 flex items-center"><input type="checkbox" class="weight-cb custom-checkbox" value="${w.rowIndex}" onchange="updateDelBtn()"></div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }
             historyDiv.innerHTML = html;
-            document.getElementById('btnDelSelectedWeight').style.display = 'none';
-        }
-
-        function updateDelBtn() {
-            const checkedCount = document.querySelectorAll('.weight-cb:checked').length;
-            const btn = document.getElementById('btnDelSelectedWeight');
-            if (checkedCount > 0) {
-                btn.style.display = 'block';
-                btn.innerText = `🗑️ ลบ ${checkedCount} รายการ`;
-            } else {
-                btn.style.display = 'none';
-            }
-        }
-
-        async function deleteBulkWeight() {
-            const selected = Array.from(document.querySelectorAll('.weight-cb:checked')).map(cb => parseInt(cb.value));
-            if (selected.length === 0) return;
-            
-            const { isConfirmed } = await Swal.fire({ 
-                title: `ยืนยันการลบ?`, 
-                text: `คุณต้องการลบข้อมูล ${selected.length} รายการ`,
-                icon: 'warning', 
-                showCancelButton: true, 
-                confirmButtonColor: '#ef4444', 
-                confirmButtonText: 'ลบเลย', cancelButtonText: 'ยกเลิก',
-                background: '#1e293b', color: '#fff' 
-            });
-
-            if (isConfirmed) {
-                document.getElementById('loader').style.display = 'flex';
-                // Optimistic UI delete
-                globalData.weights = globalData.weights.filter(w => !selected.includes(w.rowIndex));
-                renderWeight();
-                
-                await fetch(CONFIG.SCRIPT_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ action: 'deleteBatchWeight', indexes: selected }) 
-                });
-                
-                // ✅ หน่วงเวลา 1.5 วินาที
-                await new Promise(r => setTimeout(r, 1500));
-                
-                fetchData(true);
-                document.getElementById('loader').style.display = 'none';
-            }
         }
 
         async function saveWeight() {
             const val = document.getElementById('newWeight').value;
             if(!val) return;
             document.getElementById('loader').style.display = 'flex';
-            
             await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'addWeight', weight: val }) });
             document.getElementById('newWeight').value = '';
-            
-            // ✅ หน่วงเวลา 1.5 วินาที
             await new Promise(r => setTimeout(r, 1500));
-            
             fetchData(true);
             document.getElementById('loader').style.display = 'none';
+        }
+        
+        function updateDelBtn() {
+            const checkedCount = document.querySelectorAll('.weight-cb:checked').length;
+            const btn = document.getElementById('btnDelSelectedWeight');
+            if (checkedCount > 0) { btn.style.display = 'block'; btn.innerText = `🗑️ ลบ ${checkedCount} รายการ`; } else { btn.style.display = 'none'; }
+        }
+
+        async function deleteBulkWeight() {
+            const selected = Array.from(document.querySelectorAll('.weight-cb:checked')).map(cb => parseInt(cb.value));
+            if (selected.length === 0) return;
+            const { isConfirmed } = await Swal.fire({ title: `ยืนยันการลบ?`, text: `ลบข้อมูล ${selected.length} รายการ`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', background: '#1e293b', color: '#fff' });
+            if (isConfirmed) {
+                document.getElementById('loader').style.display = 'flex';
+                globalData.weights = globalData.weights.filter(w => !selected.includes(w.rowIndex));
+                renderWeight();
+                await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteBatchWeight', indexes: selected }) });
+                await new Promise(r => setTimeout(r, 1500));
+                fetchData(true);
+                document.getElementById('loader').style.display = 'none';
+            }
+        }
+
+        // --- Gallery Logic (NEW) ---
+        function renderGallery() {
+            const list = document.getElementById('galleryList');
+            const gallery = globalData.gallery || [];
+            
+            // Sort gallery by date desc
+            gallery.sort((a,b) => new Date(b.date) - new Date(a.date));
+            
+            let html = '';
+            if (gallery.length === 0) {
+                list.innerHTML = `<div class="text-center py-10 text-gray-500 text-xs italic">ยังไม่มีรูปภาพ</div>`;
+                return;
+            }
+
+            gallery.forEach(item => {
+                const dateStr = getSafeDateString(item.date);
+                const d = new Date(item.date);
+                const niceDate = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}`;
+                
+                // หา Weight ของวันนี้มาโชว์คู่กัน
+                const weightObj = globalData.weights.find(w => getSafeDateString(w.date) === dateStr);
+                const weightTxt = weightObj ? `${parseFloat(weightObj.weight).toFixed(2)} kg` : 'ไม่ได้ชั่ง';
+
+                html += `
+                    <div class="photo-card">
+                        <img src="${item.url}" loading="lazy">
+                        <div class="photo-info">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-lg">${niceDate}</span>
+                                <span class="bg-green-600 text-xs px-2 py-1 rounded font-bold">${weightTxt}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            list.innerHTML = html;
+        }
+
+        async function uploadPhoto() {
+            const fileInput = document.getElementById('photoInput');
+            const dateInput = document.getElementById('photoDate').value;
+            
+            if (fileInput.files.length === 0) return Swal.fire('Error', 'กรุณาเลือกรูปภาพ', 'error');
+            
+            document.getElementById('loader').style.display = 'flex';
+            
+            // Resize Image before upload
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function(e) {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = async function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 800; // ย่อให้กว้างไม่เกิน 800px (ประหยัดพื้นที่)
+                    const scaleSize = MAX_WIDTH / img.width;
+                    canvas.width = MAX_WIDTH;
+                    canvas.height = img.height * scaleSize;
+                    
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.8); // JPEG quality 80%
+                    
+                    // Send to Server
+                    await fetch(CONFIG.SCRIPT_URL, { 
+                        method: 'POST', 
+                        body: JSON.stringify({ 
+                            action: 'uploadPhoto', 
+                            date: dateInput, 
+                            image: dataUrl 
+                        }) 
+                    });
+                    
+                    fileInput.value = ''; // Clear input
+                    await new Promise(r => setTimeout(r, 2000)); // รอ Drive process แป๊บนึง
+                    await fetchData(true);
+                    
+                    Swal.fire({ icon: 'success', title: 'อัปโหลดเรียบร้อย', background: '#1e293b', color: '#fff', timer: 1500, showConfirmButton: false });
+                    document.getElementById('loader').style.display = 'none';
+                }
+            }
         }
 
         function switchTab(t) {
@@ -364,6 +394,7 @@
             document.getElementById('tab-'+t).classList.add('active');
             document.getElementById('view-workout').classList.add('hidden');
             document.getElementById('view-weight').classList.add('hidden');
+            document.getElementById('view-gallery').classList.add('hidden');
             document.getElementById('view-'+t).classList.remove('hidden');
         }
     </script>
