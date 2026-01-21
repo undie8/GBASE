@@ -471,8 +471,27 @@ function renderDebtList(month) {
             const total = safeNum(t.total); 
             const isPaid = (safeNum(t.paid) >= parseFloat(total.toFixed(2)));
 
-            // ดึงค่าที่ Server แปลงมาให้แล้วไปแสดงผลได้เลย
-            let dueDisplay = t.dueDate || "รอกำหนดจ่าย";
+            // --- 🟢 ส่วนที่แก้ไข: ดึงเลขวันที่และชื่อเดือน 🟢 ---
+            // 1. ดึงเลขวันที่จาก dueDate (คอลัมน์ F)
+            let dayNum = safeStr(t.dueDate).replace(/[^0-9]/g, '').padStart(2, '0') || "00";
+            
+            // 2. ดึงชื่อเดือนจาก payMonth (คอลัมน์ G)
+            let monthLabel = "";
+            let target = t.payMonth || t.month; // ใช้ค่าที่มี Year-Month เช่น "2026-02"
+
+            if (target && target.includes('-')) {
+                const parts = target.split('-');
+                const mIdx = parseInt(parts[1]) - 1; // แปลง "02" เป็นเลข 1 (กุมภาพันธ์)
+                
+                // ตรวจสอบว่ามีชื่อเดือนใน Array หรือไม่
+                if (typeof monthsTh !== 'undefined' && monthsTh[mIdx]) {
+                    monthLabel = monthsTh[mIdx];
+                }
+            }
+            
+            // 3. รวมร่างวันที่และชื่อเดือน
+            let dueDisplay = monthLabel ? `${dayNum} ${monthLabel}` : dayNum;
+            // ----------------------------------------------
 
             return `<div class="card-debt mb-1 ${isPaid ? 'paid' : ''} shadow-md flex justify-between items-center px-3 py-2">
                 <div class="flex-1">
