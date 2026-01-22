@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Easy Spend</title>
+    
+    <script src="config.js"></script> 
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body { background-color: #0f172a; color: #e2e8f0; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
+        .numpad-btn { height: 60px; border-radius: 1rem; font-size: 1.5rem; font-weight: bold; background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255,255,255,0.05); color: white; display: flex; align-items: center; justify-content: center; transition: 0.1s; }
+        .numpad-btn:active { background: rgba(255,255,255,0.1); transform: scale(0.95); }
+        .cat-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; border-radius: 12px; background: rgba(30, 41, 59, 0.5); border: 1px solid transparent; transition: 0.2s; }
+        .cat-btn.selected { background: rgba(59, 130, 246, 0.2); border-color: #3b82f6; color: white; }
+        .custom-scroll::-webkit-scrollbar { width: 0px; background: transparent; }
+        .type-switch { position: relative; display: flex; background: #1e293b; border-radius: 99px; padding: 4px; }
+        .type-btn { flex: 1; text-align: center; padding: 8px; font-size: 14px; font-weight: bold; z-index: 10; cursor: pointer; color: #64748b; transition: 0.3s; }
+        .type-btn.active { color: white; }
+        .slider { position: absolute; top: 4px; bottom: 4px; width: 50%; border-radius: 99px; transition: 0.3s; }
+        .slider.expense { left: 4px; background: #ef4444; } /* แดง */
+        .slider.income { left: 48%; background: #22c55e; } /* เขียว */
+        
+        .transaction-item { border-left: 4px solid; }
+        .border-exp { border-color: #ef4444; }
+        .border-inc { border-color: #22c55e; }
+    </style>
+</head>
+<body class="pb-20">
+
+    <div class="fixed top-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md z-50 border-b border-slate-800 h-16 flex items-center justify-between px-4">
+        <button onclick="window.location.href='index'" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800 text-slate-400"><i class="fas fa-arrow-left"></i></button>
+        <h1 class="text-xl font-black bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent uppercase">EASY SPEND</h1>
+        <div class="w-10"></div>
+    </div>
+
+    <div class="pt-20 px-4 max-w-md mx-auto">
+        
+        <div class="flex bg-slate-800 p-1 rounded-xl mb-4">
+            <button onclick="switchTab('add')" id="tab-add" class="flex-1 py-2 text-sm font-bold rounded-lg bg-slate-700 text-white shadow">จดบันทึก</button>
+            <button onclick="switchTab('history')" id="tab-history" class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-400">ประวัติ</button>
+            <button onclick="switchTab('dash')" id="tab-dash" class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-400">สรุป</button>
+        </div>
+
+        <div id="view-add">
+            <div class="bg-slate-800/50 p-4 rounded-2xl mb-4 text-right border border-white/5">
+                <p class="text-xs text-slate-400 mb-1">ยอดเงิน</p>
+                <div id="amountDisplay" class="text-4xl font-mono font-bold text-white tracking-widest">0</div>
+            </div>
+
+            <div class="type-switch mb-4">
+                <div id="typeSlider" class="slider expense"></div>
+                <div class="type-btn active" onclick="setType('expense')">รายจ่าย 💸</div>
+                <div class="type-btn" onclick="setType('income')">รายรับ 💰</div>
+            </div>
+
+            <div class="grid grid-cols-4 gap-2 mb-4">
+                </div>
+
+            <input type="text" id="noteInput" placeholder="บันทึกช่วยจำ (เช่น ข้าวมันไก่)" class="w-full bg-slate-800 p-3 rounded-xl text-white text-center mb-4 border border-slate-700 focus:border-blue-500 outline-none">
+
+            <div class="grid grid-cols-4 gap-2">
+                <div class="numpad-btn" onclick="pressNum('7')">7</div>
+                <div class="numpad-btn" onclick="pressNum('8')">8</div>
+                <div class="numpad-btn" onclick="pressNum('9')">9</div>
+                <div class="numpad-btn bg-red-500/20 text-red-400" onclick="pressDel()"><i class="fas fa-backspace"></i></div>
+
+                <div class="numpad-btn" onclick="pressNum('4')">4</div>
+                <div class="numpad-btn" onclick="pressNum('5')">5</div>
+                <div class="numpad-btn" onclick="pressNum('6')">6</div>
+                <div class="numpad-btn bg-slate-700 text-sm" onclick="pressClear()">C</div>
+
+                <div class="numpad-btn" onclick="pressNum('1')">1</div>
+                <div class="numpad-btn" onclick="pressNum('2')">2</div>
+                <div class="numpad-btn" onclick="pressNum('3')">3</div>
+                <div class="numpad-btn row-span-2 bg-blue-600 text-white shadow-lg shadow-blue-500/30" onclick="saveTransaction()"><i class="fas fa-check"></i></div>
+
+                <div class="numpad-btn col-span-2" onclick="pressNum('0')">0</div>
+                <div class="numpad-btn" onclick="pressNum('.')">.</div>
+            </div>
+        </div>
+
+        <div id="view-history" class="hidden space-y-3">
+            <div id="historyList" class="pb-10"></div>
+        </div>
+
+        <div id="view-dash" class="hidden">
+            <div class="bg-slate-800/50 p-4 rounded-2xl mb-4 text-center">
+                <p class="text-xs text-slate-400 uppercase">คงเหลือเดือนนี้</p>
+                <h2 id="dashBalance" class="text-3xl font-bold text-white mt-1">0.00</h2>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="bg-green-500/10 p-3 rounded-xl border border-green-500/20 text-center">
+                    <p class="text-[10px] text-green-400 uppercase">รายรับรวม</p>
+                    <p id="dashInc" class="text-lg font-bold text-green-400">0</p>
+                </div>
+                <div class="bg-red-500/10 p-3 rounded-xl border border-red-500/20 text-center">
+                    <p class="text-[10px] text-red-400 uppercase">รายจ่ายรวม</p>
+                    <p id="dashExp" class="text-lg font-bold text-red-400">0</p>
+                </div>
+            </div>
+            <div class="h-64 relative">
+                <canvas id="expenseChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="loader" class="fixed inset-0 bg-slate-900/90 hidden flex-col items-center justify-center z-50">
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-white mb-3"></div>
+        <p class="text-white text-xs">กำลังบันทึก...</p>
+    </div>
+
+    <script>
+        const CATEGORIES = {
+            expense: [
+                {id:'food', icon:'🍔', name:'อาหาร'},
+                {id:'travel', icon:'🚗', name:'เดินทาง'},
+                {id:'shop', icon:'🛍️', name:'ช้อป'},
+                {id:'bill', icon:'🧾', name:'บิล/น้ำไฟ'},
+                {id:'ent', icon:'🎬', name:'บันเทิง'},
+                {id:'health', icon:'💊', name:'สุขภาพ'},
+                {id:'other', icon:'✨', name:'อื่นๆ'},
+            ],
+            income: [
+                {id:'salary', icon:'💰', name:'เงินเดือน'},
+                {id:'bonus', icon:'🎁', name:'โบนัส'},
+                {id:'sell', icon:'📈', name:'ขายของ'},
+                {id:'other_in', icon:'✨', name:'อื่นๆ'}
+            ]
+        };
+
+        let currentType = 'expense';
+        let currentAmount = '0';
+        let currentCat = null;
+        let globalData = [];
+        let chartObj = null;
+
+        // Init
+        window.onload = function() {
+            renderCategories();
+            fetchData();
+        };
+
+        function setType(type) {
+            currentType = type;
+            document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const slider = document.getElementById('typeSlider');
+            if(type === 'expense') {
+                slider.style.left = '4px';
+                slider.classList.remove('income');
+                slider.classList.add('expense');
+            } else {
+                slider.style.left = '48%';
+                slider.classList.remove('expense');
+                slider.classList.add('income');
+            }
+            renderCategories();
+        }
+
+        function renderCategories() {
+            const grid = document.querySelector('.grid.grid-cols-4.gap-2.mb-4');
+            grid.innerHTML = '';
+            CATEGORIES[currentType].forEach((c, idx) => {
+                const isActive = (currentCat === c.name) ? 'selected' : '';
+                // Default select first one
+                if (idx === 0 && !currentCat) currentCat = c.name;
+                
+                grid.innerHTML += `
+                    <div class="cat-btn ${isActive}" onclick="selectCat('${c.name}', this)">
+                        <span class="text-xl mb-1">${c.icon}</span>
+                        <span class="text-[10px] text-slate-300">${c.name}</span>
+                    </div>
+                `;
+            });
+            // Auto select first if reset
+            if(!document.querySelector('.cat-btn.selected')) {
+               const first = grid.firstElementChild;
+               if(first) {
+                   first.classList.add('selected');
+                   currentCat = CATEGORIES[currentType][0].name;
+               }
+            }
+        }
+
+        function selectCat(name, el) {
+            currentCat = name;
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        // Numpad Logic
+        function pressNum(n) {
+            if(currentAmount === '0' && n !== '.') currentAmount = n;
+            else if(n === '.' && currentAmount.includes('.')) return;
+            else currentAmount += n;
+            updateDisplay();
+        }
+        function pressDel() {
+            currentAmount = currentAmount.slice(0, -1);
+            if(currentAmount === '') currentAmount = '0';
+            updateDisplay();
+        }
+        function pressClear() {
+            currentAmount = '0';
+            updateDisplay();
+        }
+        function updateDisplay() {
+            document.getElementById('amountDisplay').innerText = parseFloat(currentAmount).toLocaleString(undefined, {maximumFractionDigits:2});
+        }
+
+        // Save
+        async function saveTransaction() {
+            const amount = parseFloat(currentAmount);
+            if(amount <= 0) return Swal.fire({icon:'warning', title:'ยอดเงินต้องมากกว่า 0', toast:true, position:'top'});
+
+            document.getElementById('loader').style.display = 'flex';
+            
+            const todayStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD local logic simplified
+
+            try {
+                await fetch(CONFIG.SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'addEasySpend',
+                        date: todayStr,
+                        type: currentType,
+                        category: currentCat,
+                        amount: amount,
+                        note: document.getElementById('noteInput').value
+                    })
+                });
+                
+                // Reset
+                pressClear();
+                document.getElementById('noteInput').value = '';
+                fetchData(); // Refresh Data
+                Swal.fire({icon:'success', title:'บันทึกแล้ว', toast:true, position:'top', timer:1000, showConfirmButton:false});
+            } catch(e) {
+                Swal.fire('Error', e.message, 'error');
+            } finally {
+                document.getElementById('loader').style.display = 'none';
+            }
+        }
+
+        // Fetch & Render Data
+        async function fetchData() {
+            try {
+                const res = await fetch(`${CONFIG.SCRIPT_URL}?get=moneyData&t=${Date.now()}`);
+                const data = await res.json();
+                globalData = data.items || [];
+                renderHistory();
+                renderDashboard();
+            } catch(e) { console.log(e); }
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            list.innerHTML = '';
+            if(globalData.length === 0) { list.innerHTML = '<p class="text-center text-slate-500 py-10">ยังไม่มีรายการ</p>'; return; }
+
+            let lastDate = '';
+            globalData.forEach(item => {
+                const d = new Date(item.date);
+                const dateStr = `${d.getDate()} / ${d.getMonth()+1} / ${d.getFullYear()+543}`;
+                
+                if(dateStr !== lastDate) {
+                    list.innerHTML += `<div class="text-[10px] text-slate-500 font-bold mt-4 mb-2 pl-2 bg-slate-800/30 py-1 rounded">${dateStr}</div>`;
+                    lastDate = dateStr;
+                }
+
+                const isExp = item.type === 'expense';
+                const colorClass = isExp ? 'text-red-400' : 'text-green-400';
+                const borderClass = isExp ? 'border-exp' : 'border-inc';
+                const sign = isExp ? '-' : '+';
+
+                list.innerHTML += `
+                    <div class="transaction-item ${borderClass} bg-slate-800/50 p-3 rounded-r-xl mb-2 flex justify-between items-center shadow-sm">
+                        <div>
+                            <div class="font-bold text-sm text-white">${item.category}</div>
+                            <div class="text-xs text-slate-400">${item.note || '-'}</div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="font-mono font-bold ${colorClass}">${sign}${parseFloat(item.amount).toLocaleString()}</div>
+                            <button onclick="deleteItem(${item.rowIndex})" class="text-slate-600 hover:text-red-500"><i class="fas fa-trash-alt text-xs"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        async function deleteItem(idx) {
+            const cf = await Swal.fire({title:'ลบรายการ?', icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444', background:'#1e293b', color:'#fff'});
+            if(cf.isConfirmed) {
+                document.getElementById('loader').style.display = 'flex';
+                await fetch(CONFIG.SCRIPT_URL, { method:'POST', body: JSON.stringify({action:'deleteEasySpend', rowIndex:idx}) });
+                fetchData();
+                document.getElementById('loader').style.display = 'none';
+            }
+        }
+
+        function renderDashboard() {
+            // Simple Month Filter (Client Side)
+            const now = new Date();
+            const thisMonth = now.getMonth();
+            const thisYear = now.getFullYear();
+
+            let inc = 0, exp = 0;
+            const catTotals = {};
+
+            globalData.forEach(i => {
+                const d = new Date(i.date);
+                if(d.getMonth() === thisMonth && d.getFullYear() === thisYear) {
+                    const amt = parseFloat(i.amount);
+                    if(i.type === 'expense') {
+                        exp += amt;
+                        catTotals[i.category] = (catTotals[i.category] || 0) + amt;
+                    } else {
+                        inc += amt;
+                    }
+                }
+            });
+
+            document.getElementById('dashInc').innerText = inc.toLocaleString();
+            document.getElementById('dashExp').innerText = exp.toLocaleString();
+            document.getElementById('dashBalance').innerText = (inc - exp).toLocaleString(undefined, {minimumFractionDigits:2});
+
+            // Chart
+            const ctx = document.getElementById('expenseChart').getContext('2d');
+            if(chartObj) chartObj.destroy();
+            
+            const labels = Object.keys(catTotals);
+            const data = Object.values(catTotals);
+            
+            if(data.length === 0) return;
+
+            chartObj = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: ['#ef4444', '#f97316', '#eab308', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { color: '#94a3b8', font:{size:10} } }
+                    }
+                }
+            });
+        }
+
+        function switchTab(t) {
+            ['add','history','dash'].forEach(x => {
+                document.getElementById(`view-${x}`).classList.add('hidden');
+                document.getElementById(`tab-${x}`).classList.replace('bg-slate-700','text-slate-400');
+                document.getElementById(`tab-${x}`).classList.remove('text-white','shadow');
+            });
+            document.getElementById(`view-${t}`).classList.remove('hidden');
+            const btn = document.getElementById(`tab-${t}`);
+            btn.classList.add('bg-slate-700','text-white','shadow');
+            btn.classList.remove('text-slate-400');
+        }
+    </script>
+</body>
+</html>
