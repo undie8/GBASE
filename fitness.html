@@ -16,6 +16,14 @@
         .custom-scroll { overflow-x: auto; scroll-behavior: smooth; }
         .custom-scroll::-webkit-scrollbar { height: 0px; }
         .btn-action { transition: transform 0.1s; active: scale(0.95); }
+        
+        /* 📸 แก้ไข CSS รูปภาพโดยเฉพาะ */
+        .gallery-img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: contain; /* สำคัญ: โชว์เต็มรูป ไม่ตัดส่วนไหนออก */
+            background-color: #000; /* พื้นหลังสีดำกันดูโล่ง */
+        }
     </style>
 </head>
 <body class="text-slate-200 font-sans min-h-screen pb-24">
@@ -54,7 +62,6 @@
         <div id="sectionPhoto" class="hidden space-y-6">
             
             <div class="glass-panel p-4 rounded-3xl border-2 border-dashed border-slate-700 relative overflow-hidden">
-                
                 <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden" onchange="previewUpload(this)">
                 <input type="file" id="galleryInput" accept="image/*" class="hidden" onchange="previewUpload(this)">
 
@@ -62,12 +69,10 @@
                     <div class="text-center mb-3"><p class="text-xs text-slate-400 font-bold uppercase tracking-wider">อัปเดตหุ่นวันนี้</p></div>
                     <div class="flex gap-3">
                         <button onclick="document.getElementById('cameraInput').click()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-3 px-4 rounded-xl flex items-center justify-center gap-2 btn-action shadow-lg shadow-blue-500/20">
-                            <i class="fas fa-camera text-lg"></i>
-                            <span class="text-sm font-bold">ถ่ายรูปเลย</span>
+                            <i class="fas fa-camera text-lg"></i><span class="text-sm font-bold">ถ่ายรูปเลย</span>
                         </button>
                         <button onclick="document.getElementById('galleryInput').click()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-3 px-4 rounded-xl flex items-center justify-center gap-2 btn-action border border-slate-600">
-                            <i class="fas fa-images text-lg text-slate-300"></i>
-                            <span class="text-sm font-bold text-slate-300">อัลบั้ม</span>
+                            <i class="fas fa-images text-lg text-slate-300"></i><span class="text-sm font-bold text-slate-300">อัลบั้ม</span>
                         </button>
                     </div>
                 </div>
@@ -140,10 +145,21 @@
             let f = globalGallery.filter(i => { const d = new Date(i.date); return d >= st && d <= en; }).sort((a,b) => new Date(a.date) - new Date(b.date)); 
             if (!f.length) { g.innerHTML = '<div class="w-full text-center text-slate-600 py-10"><i class="fas fa-images text-3xl mb-2"></i><p class="text-xs">ไม่มีรูปในช่วงนี้</p></div>'; return; } 
             
-            // 🟢 ปรับความสูงกลับมาเป็น h-[450px] เพื่อรองรับรูปแนวตั้ง
             f.forEach(i => { 
                 const w = i.weight ? `<div class="absolute top-3 right-3 bg-black/70 px-2 py-1 rounded-lg text-xs font-bold text-white border border-white/10 shadow-lg backdrop-blur-sm">${i.weight} kg</div>` : ''; 
-                g.innerHTML += `<div class="glass-panel rounded-2xl overflow-hidden relative group min-w-[85%] snap-center shadow-xl"><div class="relative h-[450px] bg-slate-900"><img src="${i.url}" class="w-full h-full object-cover" loading="lazy">${w}<div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-900 pt-16 flex justify-between items-end"><div><p class="text-[10px] text-slate-400 uppercase font-bold">บันทึกเมื่อ</p><p class="text-lg font-bold text-white">${formatDate(i.date)}</p></div><button onclick="deletePhoto('${i.fileId}')" class="w-10 h-10 rounded-full bg-black/40 text-white flex items-center justify-center transition border border-white/10"><i class="fas fa-trash-alt"></i></button></div></div></div>`; 
+                // 🟢 ใช้ลิงก์ Thumbnail ความละเอียดสูง (sz=w1000) แทนลิงก์เดิม
+                const highResUrl = `https://drive.google.com/thumbnail?id=${i.fileId}&sz=w1000`;
+                
+                g.innerHTML += `
+                <div class="glass-panel rounded-2xl overflow-hidden relative group min-w-[85%] snap-center shadow-xl">
+                    <div class="relative h-[480px] bg-black"> <img src="${highResUrl}" class="gallery-img" loading="lazy" onerror="this.src='${i.url}'">
+                        ${w}
+                        <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-900/90 pt-16 flex justify-between items-end">
+                            <div><p class="text-[10px] text-slate-400 uppercase font-bold">บันทึกเมื่อ</p><p class="text-lg font-bold text-white">${formatDate(i.date)}</p></div>
+                            <button onclick="deletePhoto('${i.fileId}')" class="w-10 h-10 rounded-full bg-black/40 text-white flex items-center justify-center transition border border-white/10"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </div>
+                </div>`; 
             }); 
             setTimeout(() => { g.scrollLeft = g.scrollWidth; }, 100); 
         }
