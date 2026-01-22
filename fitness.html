@@ -13,16 +13,22 @@
         body { -webkit-tap-highlight-color: transparent; background-color: #0f172a; font-family: sans-serif; }
         .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
         input[type=number] { -moz-appearance: textfield; }
+        
+        /* 🟢 กู้คืน Scrollbar สำหรับ Desktop */
         .custom-scroll { overflow-x: auto; scroll-behavior: smooth; }
-        .custom-scroll::-webkit-scrollbar { height: 0px; }
+        .custom-scroll::-webkit-scrollbar { height: 8px; } /* ความสูงแถบเลื่อน */
+        .custom-scroll::-webkit-scrollbar-track { background: rgba(30, 41, 59, 0.5); border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.8); border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
         .btn-action { transition: transform 0.1s; active: scale(0.95); }
         
-        /* 📸 แก้ไข CSS รูปภาพโดยเฉพาะ */
+        /* CSS รูปภาพ */
         .gallery-img { 
             width: 100%; 
             height: 100%; 
-            object-fit: contain; /* สำคัญ: โชว์เต็มรูป ไม่ตัดส่วนไหนออก */
-            background-color: #000; /* พื้นหลังสีดำกันดูโล่ง */
+            object-fit: contain; /* โชว์เต็มรูป */
+            /* พื้นหลังเปลี่ยนเป็นใส หรือสีเดียวกับธีม */
         }
     </style>
 </head>
@@ -78,7 +84,9 @@
                 </div>
 
                 <div id="uploadPreview" class="hidden relative z-20">
-                    <img id="imgPreview" class="w-full h-96 object-contain rounded-xl mb-3 bg-black/50 border border-slate-600">
+                    <div class="w-full h-96 bg-slate-900/50 rounded-xl mb-3 flex items-center justify-center border border-slate-600 overflow-hidden">
+                        <img id="imgPreview" class="w-full h-full object-contain">
+                    </div>
                     <div class="flex gap-2 mb-3">
                         <input type="date" id="photoDate" onchange="autoFillWeight()" class="flex-1 bg-slate-800 p-3 rounded-xl text-xs text-white border border-slate-600 text-center">
                         <input type="number" id="photoWeight" placeholder="นน." class="w-24 bg-slate-800 p-3 rounded-xl text-xs text-white text-center border border-slate-600 font-bold">
@@ -99,7 +107,7 @@
                 </div>
             </div>
 
-            <div id="galleryGrid" class="flex overflow-x-auto gap-4 pb-6 snap-x snap-mandatory custom-scroll px-1"></div>
+            <div id="galleryGrid" class="flex overflow-x-auto gap-4 pb-6 px-1 custom-scroll"></div>
         </div>
     </div>
 
@@ -147,12 +155,12 @@
             
             f.forEach(i => { 
                 const w = i.weight ? `<div class="absolute top-3 right-3 bg-black/70 px-2 py-1 rounded-lg text-xs font-bold text-white border border-white/10 shadow-lg backdrop-blur-sm">${i.weight} kg</div>` : ''; 
-                // 🟢 ใช้ลิงก์ Thumbnail ความละเอียดสูง (sz=w1000) แทนลิงก์เดิม
                 const highResUrl = `https://drive.google.com/thumbnail?id=${i.fileId}&sz=w1000`;
                 
                 g.innerHTML += `
                 <div class="glass-panel rounded-2xl overflow-hidden relative group min-w-[85%] snap-center shadow-xl">
-                    <div class="relative h-[480px] bg-black"> <img src="${highResUrl}" class="gallery-img" loading="lazy" onerror="this.src='${i.url}'">
+                    <div class="relative h-[450px] bg-slate-900">
+                        <img src="${highResUrl}" class="gallery-img" loading="lazy" onerror="this.src='${i.url}'">
                         ${w}
                         <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-900/90 pt-16 flex justify-between items-end">
                             <div><p class="text-[10px] text-slate-400 uppercase font-bold">บันทึกเมื่อ</p><p class="text-lg font-bold text-white">${formatDate(i.date)}</p></div>
@@ -161,7 +169,7 @@
                     </div>
                 </div>`; 
             }); 
-            setTimeout(() => { g.scrollLeft = g.scrollWidth; }, 100); 
+            // ไม่บังคับ scroll ให้สุด เพื่อให้คนใช้คอมเห็น scrollbar ง่ายขึ้น
         }
         
         function renderChart() { 
