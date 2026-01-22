@@ -13,51 +13,43 @@
     <style>
         body { background-color: #0f172a; color: #e2e8f0; font-family: sans-serif; -webkit-tap-highlight-color: transparent; user-select: none; overflow: hidden; }
         
-        /* Layout */
         .scroll-container {
-            height: calc(100vh - 100px); /* เต็มจอหัก Header/Tabs */
+            height: calc(100vh - 120px); 
             overflow-y: auto;
-            padding-bottom: 100px; /* เผื่อที่ให้ปุ่มลอย */
+            padding-bottom: 100px;
         }
         .scroll-container::-webkit-scrollbar { width: 0px; background: transparent; }
 
-        /* Tabs Styles */
-        .main-tab { padding: 10px; text-align: center; border-bottom: 2px solid transparent; color: #64748b; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        /* 🟢 ปรับแต่ง Tab ให้เล็กลงและอยู่กึ่งกลาง */
+        .tab-wrapper {
+            max-width: 450px; /* จำกัดความกว้างไม่ให้แผ่เต็มจอคอม */
+            margin: 0 auto;
+            display: grid;
+            grid-template-cols: 1 -webkit-flex;
+            grid-template-cols: repeat(2, 1fr);
+        }
+        .main-tab { padding: 12px 0; text-align: center; border-bottom: 3px solid transparent; color: #64748b; font-size: 0.9rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .main-tab.active { color: #3b82f6; border-color: #3b82f6; }
         
         .sub-pill { padding: 6px 16px; border-radius: 99px; font-size: 0.8rem; background: rgba(30,41,59,0.5); color: #94a3b8; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.2s; }
         .sub-pill.active { background: rgba(59,130,246,0.2); color: #60a5fa; border-color: #3b82f6; font-weight: bold; }
 
-        /* Components */
         .numpad-btn { height: 55px; border-radius: 1rem; font-size: 1.4rem; font-weight: bold; background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255,255,255,0.05); color: white; display: flex; align-items: center; justify-content: center; transition: 0.1s; cursor: pointer; }
         .numpad-btn:active { transform: scale(0.95); background: rgba(255,255,255,0.1); }
         .cat-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; border-radius: 12px; background: rgba(30, 41, 59, 0.5); border: 1px solid transparent; transition: 0.2s; position: relative; cursor: pointer; }
         .cat-btn.selected { background: rgba(59, 130, 246, 0.2); border-color: #3b82f6; color: white; transform: scale(1.05); border: 1px solid rgba(59, 130, 246, 0.5); }
         
-        /* Lists */
         .transaction-item { border-left: 4px solid; background: rgba(30, 41, 59, 0.4); }
         .border-exp { border-color: #ef4444; }
         .border-inc { border-color: #22c55e; }
         .cat-icon-circle { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-right: 12px; }
 
-        /* Modal Slide Up */
-        #addModal { 
-            position: fixed; inset: 0; background: #0f172a; z-index: 100; 
-            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex; flex-direction: column;
-        }
+        #addModal { position: fixed; inset: 0; background: #0f172a; z-index: 100; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; }
         #addModal.open { transform: translateY(0); }
 
-        /* 🆕 Floating Button */
-        .floating-action-btn {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            color: white;
-            box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.5);
-            transition: all 0.2s;
-        }
-        .floating-action-btn:active { transform: scale(0.95); box-shadow: 0 5px 10px -5px rgba(37, 99, 235, 0.5); }
+        .floating-action-btn { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.5); transition: all 0.2s; }
+        .floating-action-btn:active { transform: scale(0.95); }
 
-        /* 🆕 Type Switcher in Modal */
         .type-switch { position: relative; display: flex; background: #1e293b; border-radius: 12px; padding: 4px; margin-bottom: 15px; }
         .type-btn { flex: 1; text-align: center; padding: 8px; font-size: 14px; font-weight: bold; z-index: 10; cursor: pointer; color: #64748b; transition: 0.3s; }
         .type-btn.active { color: white; }
@@ -77,17 +69,18 @@
         <button onclick="openManage()" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:text-white transition"><i class="fas fa-cog"></i></button>
     </div>
 
-    <div class="fixed top-16 left-0 right-0 bg-slate-900 z-40 grid grid-cols-2 border-b border-slate-800">
-        <div onclick="switchView('history')" id="tab-history" class="main-tab active">
-            <i class="fas fa-list-ul mr-1"></i> รายการ
-        </div>
-        <div onclick="switchView('stats')" id="tab-stats" class="main-tab">
-            <i class="fas fa-chart-pie mr-1"></i> สถิติ
+    <div class="fixed top-16 left-0 right-0 bg-slate-900 z-40 border-b border-slate-800">
+        <div class="tab-wrapper">
+            <div onclick="switchView('history')" id="tab-history" class="main-tab active">
+                <i class="fas fa-list-ul mr-2"></i>รายการ
+            </div>
+            <div onclick="switchView('stats')" id="tab-stats" class="main-tab">
+                <i class="fas fa-chart-pie mr-2"></i>สถิติ
+            </div>
         </div>
     </div>
 
-    <div class="pt-32 px-4 max-w-md mx-auto scroll-container">
-        
+    <div class="pt-28 px-4 max-w-md mx-auto scroll-container">
         <div id="view-history" class="fade-in">
             <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-5 rounded-3xl border border-white/5 shadow-xl mb-6 relative overflow-hidden">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
@@ -100,29 +93,19 @@
                     <div class="flex-1 bg-slate-800/50 p-2.5 rounded-xl border border-white/5"><p class="text-[9px] text-slate-400 uppercase mb-0.5"><i class="fas fa-circle text-[6px] text-red-500 mr-1"></i>รายจ่าย</p><p id="sumExp" class="text-sm font-bold text-red-400 pl-3">0</p></div>
                 </div>
             </div>
-
-            <div id="historyList" class="space-y-3 pb-4">
-                <div class="text-center py-10 opacity-50"><i class="fas fa-circle-notch fa-spin text-2xl text-blue-500"></i></div>
-            </div>
+            <div id="historyList" class="space-y-3 pb-4"><div class="text-center py-10 opacity-50"><i class="fas fa-circle-notch fa-spin text-2xl text-blue-500"></i></div></div>
         </div>
 
         <div id="view-stats" class="hidden fade-in">
-            <div class="flex justify-center gap-3 mb-6">
-                <button onclick="switchStatMode('cat')" id="subtab-cat" class="sub-pill active">ตามหมวดหมู่</button>
-                <button onclick="switchStatMode('day')" id="subtab-day" class="sub-pill">ตามวัน</button>
-            </div>
-            <div class="bg-slate-800/50 p-4 rounded-2xl border border-white/5 mb-6 relative">
-                <div class="h-64 w-full"><canvas id="statChart"></canvas></div>
-                <div id="chartEmpty" class="hidden absolute inset-0 flex items-center justify-center text-slate-500 text-xs">ไม่มีข้อมูลรายจ่าย</div>
-            </div>
+            <div class="flex justify-center gap-3 mb-6"><button onclick="switchStatMode('cat')" id="subtab-cat" class="sub-pill active">ตามหมวดหมู่</button><button onclick="switchStatMode('day')" id="subtab-day" class="sub-pill">ตามวัน</button></div>
+            <div class="bg-slate-800/50 p-4 rounded-2xl border border-white/5 mb-6 relative"><div class="h-64 w-full"><canvas id="statChart"></canvas></div><div id="chartEmpty" class="hidden absolute inset-0 flex items-center justify-center text-slate-500 text-xs">ไม่มีข้อมูลรายจ่าย</div></div>
             <div id="statList" class="space-y-3"></div>
         </div>
     </div>
 
     <div class="fixed bottom-6 left-0 right-0 flex justify-center z-50 pointer-events-none">
         <button onclick="openAddModal('expense')" class="pointer-events-auto floating-action-btn flex items-center gap-3 px-8 py-4 rounded-full border border-white/20">
-            <i class="fas fa-plus text-xl"></i>
-            <span class="text-lg font-bold tracking-wide">จดบันทึก</span>
+            <i class="fas fa-plus text-xl"></i><span class="text-lg font-bold tracking-wide">จดบันทึก</span>
         </button>
     </div>
 
@@ -132,31 +115,17 @@
             <h2 id="modalTitle" class="text-white font-bold text-lg">บันทึกรายการ</h2>
             <button onclick="saveTransaction()" class="text-blue-400 font-bold px-2 py-1 bg-blue-500/10 rounded-lg border border-blue-500/20">บันทึก</button>
         </div>
-        
         <div class="flex-1 overflow-y-auto p-4 max-w-md mx-auto w-full bg-[#0f172a]">
-            
-            <div class="type-switch">
-                <div id="typeSlider" class="slider expense"></div>
-                <div class="type-btn active" onclick="setType('expense')">รายจ่าย</div>
-                <div class="type-btn" onclick="setType('income')">รายรับ</div>
-            </div>
-
-            <div class="bg-slate-800/50 p-4 rounded-2xl mb-4 text-right border border-white/5">
-                <p class="text-xs text-slate-400 mb-1">ระบุยอดเงิน</p>
-                <div id="amountDisplay" class="text-5xl font-mono font-bold text-white tracking-tight overflow-hidden text-ellipsis whitespace-nowrap">0</div>
-                <div id="calcPreview" class="text-sm text-slate-500 h-5 mt-1 font-mono"></div>
-            </div>
-
+            <div class="type-switch"><div id="typeSlider" class="slider expense"></div><div class="type-btn active" onclick="setType('expense')">รายจ่าย</div><div class="type-btn" onclick="setType('income')">รายรับ</div></div>
+            <div class="bg-slate-800/50 p-4 rounded-2xl mb-4 text-right border border-white/5"><p class="text-xs text-slate-400 mb-1">ระบุยอดเงิน</p><div id="amountDisplay" class="text-5xl font-mono font-bold text-white tracking-tight overflow-hidden text-ellipsis whitespace-nowrap">0</div><div id="calcPreview" class="text-sm text-slate-500 h-5 mt-1 font-mono"></div></div>
             <div id="catGrid" class="grid grid-cols-4 gap-3 mb-5"></div>
-
             <div class="relative mb-5"><div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500"><i class="fas fa-pen"></i></div><input type="text" id="noteInput" placeholder="บันทึกช่วยจำ..." class="w-full bg-slate-800 p-3 pl-10 rounded-xl text-white border border-slate-700 focus:border-blue-500 outline-none"></div>
-
             <div class="grid grid-cols-4 gap-2 pb-10">
                 <div class="numpad-btn" onclick="pressNum('7')">7</div><div class="numpad-btn" onclick="pressNum('8')">8</div><div class="numpad-btn" onclick="pressNum('9')">9</div><div class="numpad-btn bg-red-500/20 text-red-400 border-red-500/30" onclick="pressDel()"><i class="fas fa-backspace"></i></div>
-                <div class="numpad-btn" onclick="pressNum('4')">4</div><div class="numpad-btn" onclick="pressNum('5')">5</div><div class="numpad-btn" onclick="pressNum('6')">6</div><div class="numpad-btn op" onclick="pressOp('/')">÷</div>
-                <div class="numpad-btn" onclick="pressNum('1')">1</div><div class="numpad-btn" onclick="pressNum('2')">2</div><div class="numpad-btn" onclick="pressNum('3')">3</div><div class="numpad-btn op" onclick="pressOp('*')">×</div>
-                <div class="numpad-btn bg-slate-700 text-sm" onclick="pressClear()">C</div><div class="numpad-btn" onclick="pressNum('0')">0</div><div class="numpad-btn" onclick="pressNum('.')">.</div><div class="numpad-btn op" onclick="pressOp('-')">-</div>
-                <div class="numpad-btn col-span-4 mt-2 op" onclick="pressOp('+')">+</div>
+                <div class="numpad-btn" onclick="pressNum('4')">4</div><div class="numpad-btn" onclick="pressNum('5')">5</div><div class="numpad-btn" onclick="pressNum('6')">6</div><div class="numpad-btn op" style="background:rgba(59,130,246,0.15);color:#60a5fa" onclick="pressOp('/')">÷</div>
+                <div class="numpad-btn" onclick="pressNum('1')">1</div><div class="numpad-btn" onclick="pressNum('2')">2</div><div class="numpad-btn" onclick="pressNum('3')">3</div><div class="numpad-btn op" style="background:rgba(59,130,246,0.15);color:#60a5fa" onclick="pressOp('*')">×</div>
+                <div class="numpad-btn bg-slate-700 text-sm" onclick="pressClear()">C</div><div class="numpad-btn" onclick="pressNum('0')">0</div><div class="numpad-btn" onclick="pressNum('.')">.</div><div class="numpad-btn op" style="background:rgba(59,130,246,0.15);color:#60a5fa" onclick="pressOp('-')">-</div>
+                <div class="numpad-btn col-span-4 mt-2 op" style="background:rgba(59,130,246,0.15);color:#60a5fa" onclick="pressOp('+')">+</div>
             </div>
         </div>
     </div>
@@ -164,10 +133,9 @@
     <div id="loader" class="fixed inset-0 bg-slate-900/90 hidden flex-col items-center justify-center z-[150]"><div class="animate-spin rounded-full h-10 w-10 border-b-2 border-white mb-3"></div><p class="text-white text-xs">Syncing...</p></div>
 
     <script>
-        // CONFIG
+        // JS Core Logic (เหมือนเวอร์ชันก่อนหน้า v5.1)
         let currentType='expense', currentInput='0', currentCat=null, globalData=[], globalCats=[], editingRowIndex=null;
         let chartInstance = null; let statMode = 'cat';
-
         const THAI_MONTHS = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
         const DEFAULT_CATS = [{type:'expense',icon:'🍔',name:'อาหาร'},{type:'expense',icon:'🚗',name:'เดินทาง'},{type:'income',icon:'💰',name:'เงินเดือน'}];
 
@@ -176,12 +144,10 @@
             fetchCategories(); fetchData();
         };
 
-        // --- FETCH ---
         async function fetchCategories() { try{const r=await fetch(`${CONFIG.SCRIPT_URL}?get=moneyCats`);const d=await r.json(); globalCats=d.categories||[]; if(!globalCats.length)globalCats=DEFAULT_CATS;}catch(e){globalCats=DEFAULT_CATS;} }
         async function fetchData() { try{const r=await fetch(`${CONFIG.SCRIPT_URL}?get=moneyData&t=${Date.now()}`);const d=await r.json(); globalData=d.items||[]; renderAll(); }catch(e){} }
-        function renderAll() { renderSummaryCard(); renderHistory(); if(document.getElementById('view-stats').classList.contains('hidden')===false) renderStats(); }
+        function renderAll() { renderSummaryCard(); renderHistory(); if(!document.getElementById('view-stats').classList.contains('hidden')) renderStats(); }
 
-        // --- VIEW SWITCHING ---
         function switchView(view) {
             document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden')); document.getElementById(`view-${view}`).classList.remove('hidden');
             document.querySelectorAll('.main-tab').forEach(el => el.classList.remove('active')); document.getElementById(`tab-${view}`).classList.add('active');
@@ -189,15 +155,13 @@
         }
         function switchStatMode(mode) { statMode = mode; document.querySelectorAll('.sub-pill').forEach(el => el.classList.remove('active')); document.getElementById(`subtab-${mode}`).classList.add('active'); renderStats(); }
 
-        // --- STATS ---
         function renderStats() {
             const ctx=document.getElementById('statChart').getContext('2d'); const list=document.getElementById('statList');
             const now=new Date(); const m=now.getMonth(); const y=now.getFullYear();
             const expenseData = globalData.filter(i => {const d=new Date(i.date); return d.getMonth()===m && d.getFullYear()===y && i.type==='expense';});
-            if(expenseData.length===0){if(chartInstance)chartInstance.destroy();document.getElementById('chartEmpty').classList.remove('hidden');list.innerHTML='<p class="text-center text-slate-500 text-xs py-4">ไม่มีข้อมูลรายจ่ายเดือนนี้</p>';return;}
+            if(!expenseData.length){if(chartInstance)chartInstance.destroy();document.getElementById('chartEmpty').classList.remove('hidden');list.innerHTML='<p class="text-center text-slate-500 text-xs py-4">ไม่มีข้อมูลรายจ่ายเดือนนี้</p>';return;}
             document.getElementById('chartEmpty').classList.add('hidden');
             let labels=[],dataPoints=[],colors=['#ef4444','#f97316','#eab308','#3b82f6','#8b5cf6','#ec4899','#14b8a6'];
-            
             if(statMode==='cat'){
                 const g={}; expenseData.forEach(i=>g[i.category]=(g[i.category]||0)+parseFloat(i.amount));
                 const sk=Object.keys(g).sort((a,b)=>g[b]-g[a]); labels=sk; dataPoints=sk.map(k=>g[k]);
@@ -212,7 +176,6 @@
             }
         }
 
-        // --- HISTORY & SUMMARY ---
         function renderSummaryCard() {
             const now=new Date(); const m=now.getMonth(); const y=now.getFullYear(); let inc=0,exp=0;
             globalData.forEach(i=>{const d=new Date(i.date);if(d.getMonth()===m&&d.getFullYear()===y){const a=parseFloat(i.amount); if(i.type==='expense')exp+=a;else inc+=a;}});
@@ -229,53 +192,19 @@
                 list.innerHTML+=`<div class="transaction-item ${isExp?'border-exp':'border-inc'} p-3 rounded-xl mb-2 flex justify-between items-center shadow-sm" onclick="askEdit(${item.rowIndex})"><div class="flex items-center"><div class="cat-icon-circle">${icon}</div><div><div class="font-bold text-sm text-white">${item.category}</div><div class="text-xs text-slate-400">${item.note||''}</div></div></div><div class="font-mono font-bold ${isExp?'text-red-400':'text-green-400'}">${isExp?'-':'+'}${parseFloat(item.amount).toLocaleString()}</div></div>`;
             });
         }
-        function getCatIcon(name){const c=globalCats.find(x=>x.name===name);return c?c.icon:'📝';}
-
-        // --- ACTIONS ---
-        function openAddModal(t){
-            editingRowIndex=null; 
-            setType(t || 'expense'); // Default to expense if not provided
-            document.getElementById('noteInput').value=''; 
-            pressClear(); 
-            document.getElementById('addModal').classList.add('open');
-        }
+        function getCatIcon(n){const c=globalCats.find(x=>x.name===n);return c?c.icon:'📝';}
+        function openAddModal(t){editingRowIndex=null; setType(t||'expense'); document.getElementById('noteInput').value=''; pressClear(); document.getElementById('addModal').classList.add('open');}
         function closeAddModal(){document.getElementById('addModal').classList.remove('open');}
-
-        function setType(type) {
-            currentType = type;
-            document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active')); event.target?.classList.add('active');
-            const slider = document.getElementById('typeSlider');
-            if(type==='expense'){ slider.style.left='4px'; slider.classList.replace('income','expense'); } else{ slider.style.left='48%'; slider.classList.replace('expense','income'); }
-            if(!editingRowIndex) currentCat = null; 
-            renderCategories();
-        }
-
-        function renderCategories(){
-            const g=document.getElementById('catGrid');g.innerHTML='';const f=globalCats.filter(c=>c.type===currentType);
-            f.forEach((c,i)=>{const a=(currentCat===c.name)?'selected':'';if(i===0&&!currentCat)currentCat=c.name;g.innerHTML+=`<div class="cat-btn ${a}" onclick="selectCat('${c.name}',this)"><span class="text-2xl mb-1">${c.icon}</span><span class="text-[10px] text-slate-300 text-center leading-tight">${c.name}</span></div>`;});
-            if(!document.querySelector('.cat-btn.selected')&&f.length){if(editingRowIndex){const el=[...g.children].find(e=>e.innerText.includes(currentCat));if(el){document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('selected'));el.classList.add('selected');return;}}g.firstElementChild.classList.add('selected');currentCat=f[0].name;}
-        }
+        function setType(t){currentType=t; document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active')); event.target?.classList.add('active'); const s=document.getElementById('typeSlider'); if(t==='expense'){s.style.left='4px';s.classList.replace('income','expense');}else{s.style.left='48%';s.classList.replace('expense','income');} if(!editingRowIndex)currentCat=null; renderCategories();}
+        function renderCategories(){const g=document.getElementById('catGrid');g.innerHTML='';const f=globalCats.filter(c=>c.type===currentType);f.forEach((c,i)=>{const a=(currentCat===c.name)?'selected':'';if(i===0&&!currentCat)currentCat=c.name;g.innerHTML+=`<div class="cat-btn ${a}" onclick="selectCat('${c.name}',this)"><span class="text-2xl mb-1">${c.icon}</span><span class="text-[10px] text-slate-300 text-center leading-tight">${c.name}</span></div>`;});if(!document.querySelector('.cat-btn.selected')&&f.length){if(editingRowIndex){const el=[...g.children].find(e=>e.innerText.includes(currentCat));if(el){document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('selected'));el.classList.add('selected');return;}}g.firstElementChild.classList.add('selected');currentCat=f[0].name;}}
         function selectCat(n,e){currentCat=n;document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('selected'));e.classList.add('selected');}
-        
-        async function askEdit(idx){
-            const i=globalData.find(x=>x.rowIndex===idx); if(!i)return;
-            const r=await Swal.fire({title:'จัดการรายการ',text:`${i.category} ${i.amount}`,icon:'info',showCancelButton:true,showDenyButton:true,confirmButtonText:'แก้ไข',denyButtonText:'ลบ',cancelButtonText:'ปิด',confirmButtonColor:'#eab308',denyButtonColor:'#ef4444',background:'#1e293b',color:'#fff'});
-            if(r.isConfirmed){editingRowIndex=idx; currentInput=String(i.amount); currentCat=i.category; document.getElementById('noteInput').value=i.note; setType(i.type); updateDisplay(); document.getElementById('addModal').classList.add('open');}
-            else if(r.isDenied){document.getElementById('loader').style.display='flex';await fetch(CONFIG.SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'deleteEasySpend',rowIndex:idx})});fetchData();document.getElementById('loader').style.display='none';}
-        }
-        async function saveTransaction(){
-            const amt=calculateResult();if(amt<=0)return Swal.fire({icon:'warning',title:'ยอดเงินต้องมากกว่า 0',toast:true,position:'top'});
-            document.getElementById('loader').style.display='flex';
-            const act=editingRowIndex?'editEasySpend':'addEasySpend'; const ex=editingRowIndex?{rowIndex:editingRowIndex}:{};
-            try{await fetch(CONFIG.SCRIPT_URL,{method:'POST',body:JSON.stringify({action:act,...ex,date:new Date().toISOString().split('T')[0],type:currentType,category:currentCat,amount:amt,note:document.getElementById('noteInput').value})});closeAddModal();fetchData();}catch(e){Swal.fire('Error',e.message,'error');}finally{document.getElementById('loader').style.display='none';}
-        }
-        
-        // Calculator
+        async function askEdit(idx){const i=globalData.find(x=>x.rowIndex===idx);if(!i)return;const r=await Swal.fire({title:'จัดการรายการ',text:`${i.category} ${i.amount}`,icon:'info',showCancelButton:true,showDenyButton:true,confirmButtonText:'แก้ไข',denyButtonText:'ลบ',cancelButtonText:'ปิด',confirmButtonColor:'#eab308',denyButtonColor:'#ef4444',background:'#1e293b',color:'#fff'});if(r.isConfirmed){editingRowIndex=idx;currentInput=String(i.amount);currentCat=i.category;document.getElementById('noteInput').value=i.note;setType(i.type);updateDisplay();document.getElementById('addModal').classList.add('open');}else if(r.isDenied){document.getElementById('loader').style.display='flex';await fetch(CONFIG.SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'deleteEasySpend',rowIndex:idx})});fetchData();document.getElementById('loader').style.display='none';}}
+        async function saveTransaction(){const amt=calculateResult();if(amt<=0)return Swal.fire({icon:'warning',title:'ยอดเงินต้องมากกว่า 0',toast:true,position:'top'});document.getElementById('loader').style.display='flex';const act=editingRowIndex?'editEasySpend':'addEasySpend';const ex=editingRowIndex?{rowIndex:editingRowIndex}:{};try{await fetch(CONFIG.SCRIPT_URL,{method:'POST',body:JSON.stringify({action:act,...ex,date:new Date().toISOString().split('T')[0],type:currentType,category:currentCat,amount:amt,note:document.getElementById('noteInput').value})});closeAddModal();fetchData();}catch(e){Swal.fire('Error',e.message,'error');}finally{document.getElementById('loader').style.display='none';}}
         function pressNum(n){if(currentInput==='0'&&n!=='.')currentInput=n;else if(n==='.'&&currentInput.slice(-1)==='.')return;else currentInput+=n;updateDisplay();}
         function pressOp(o){const l=currentInput.slice(-1);if(['+','-','*','/'].includes(l))currentInput=currentInput.slice(0,-1)+o;else currentInput+=o;updateDisplay();}
         function pressDel(){currentInput=currentInput.slice(0,-1);if(currentInput==='')currentInput='0';updateDisplay();}
         function pressClear(){currentInput='0';document.getElementById('calcPreview').innerText='';updateDisplay();}
-        function calculateResult(){try{if(/[^0-9+\-*/.]/.test(currentInput))return 0;const r=new Function('return '+currentInput)();return(!isFinite(r)||isNaN(r))?0:r;}catch(e){return 0;}}
+        function calculateResult(){try{if(/[^0-9+\-*/.]/.test(currentInput))return 0;const r=eval(currentInput);return(!isFinite(r)||isNaN(r))?0:r;}catch(e){return 0;}}
         function updateDisplay(){let s=currentInput.replace(/\*/g,' × ').replace(/\//g,' ÷ ').replace(/\+/g,' + ').replace(/-/g,' - ');document.getElementById('amountDisplay').innerText=s;if(['+','-','*','/'].some(x=>currentInput.includes(x))&&!['+','-','*','/'].includes(currentInput.slice(-1))){document.getElementById('calcPreview').innerText='= '+calculateResult().toLocaleString(undefined,{maximumFractionDigits:2});}else{document.getElementById('calcPreview').innerText='';}}
         function openManage(){Swal.fire({title:'จัดการหมวดหมู่',text:'ระบบจัดการหมวดหมู่อยู่ระหว่างการปรับปรุงให้เข้ากับดีไซน์ใหม่',icon:'info',background:'#1e293b',color:'#fff'});}
     </script>
